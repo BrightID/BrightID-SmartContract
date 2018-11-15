@@ -15,7 +15,7 @@ pip install web3
 * run ganache-cli (with test keys) by:
 
 ```
-cd pytest
+cd tests
 ./run-ganache-cli.sh
 ```
 
