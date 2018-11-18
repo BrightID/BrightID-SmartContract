@@ -5,8 +5,9 @@
 
 ```
 npm install -g truffle
-npm install truffle-hdwallet-provider
+npm install -g truffle-hdwallet-provider
 npm install -g ganache-cli
+pip install flask
 pip install pysha3
 pip install web3
 ```
