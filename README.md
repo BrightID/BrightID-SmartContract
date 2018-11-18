@@ -5,6 +5,7 @@
 
 ```
 npm install -g truffle
+npm install truffle-hdwallet-provider
 npm install -g ganache-cli
 pip install pysha3
 pip install web3
@@ -24,6 +25,8 @@ cd tests
 ```
 truffle deploy --network development --reset
 ```
+
+* Add address of BrightID smart contract to config.py.
 
 * Test with client python script by:
 
