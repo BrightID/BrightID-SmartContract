@@ -36,6 +36,12 @@ contract BrightID {
     event LogAddNodeToContext(bytes32 contextName, address nodeAddress);
     event LogRemoveNodeFromContext(bytes32 contextName, address nodeAddress);
 
+    constructor()
+        public {
+            address owner = msg.sender;
+            addContext('Aragon');
+        }
+
     /**
      * @dev Check if a user exists.
      * @param userAddress The user's address.
@@ -141,6 +147,7 @@ contract BrightID {
     {
         nodes[nodeAddress].isActive = true;
         emit LogAddNode(nodeAddress);
+        addNodeToContext('Aragon', nodeAddress);
     }
 
     /**

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Bright ID App</title>
+    <link rel="stylesheet" type="text/css" href="./main.css">
+    <script src="./web3.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="./app.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+</head>
+<body>
+    <h5>BrightID Contract Address</h5>
+    <div class="input-field">
+        <input id="contract_address" type="text" class="validate" value="0xa78e917f3d19668539415821524b597be918d5b9">
+        <label for="contract_address">BrightID Contract Address</label>
+    </div>
+    <div class="row">
+        <div class="col l6 s12">
+            <h5>Add Node</h5>
+            <div class="input-field">
+                <input id="addNode_nodeAddress" type="text" class="validate">
+                <label for="addNode_nodeAddress">Node Address</label>
+            </div>
+            <a class="waves-effect waves-light btn" id="addNode">Execute</a>
+        </div>
+        <div class="col l6 s12">
+            <h5>IS Node</h5>
+            <div class="input-field">
+                <input id="isNode_nodeAddress" type="text" class="validate">
+                <label for="isNode_nodeAddress">Node Address</label>
+            </div>
+            <a class="waves-effect waves-light btn" id="isNode">Execute</a>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col l6 s12">
+            <h5>Add Context</h5>
+            <div class="input-field">
+                <input id="addContext_contextName" type="text" class="validate">
+                <label for="addContext_contextName">Context Name</label>
+            </div>
+            <a class="waves-effect waves-light btn" id="addContext">Execute</a>
+        </div>
+        <div class="col l6 s12">
+            <h5>Is Context</h5>
+            <div class="input-field">
+                <input id="isContext_contextName" type="text" class="validate">
+                <label for="isContext_contextName">Context Name</label>
+            </div>
+            <a class="waves-effect waves-light btn" id="isContext">Execute</a>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col l6 s12">
+            <h5>Add Node To Context</h5>
+            <div class="input-field">
+                <input id="addNodeToContext_nodeAddress" type="text" class="validate">
+                <label for="addNodeToContext_nodeAddress">Node Address</label>
+            </div>
+            <div class="input-field">
+                <input id="addNodeToContext_contextName" type="text" class="validate">
+                <label for="addNodeToContext_contextName">Context Name</label>
+            </div>
+            <a class="waves-effect waves-light btn" id="addNodeToContext">Execute</a>
+        </div>
+        <div class="col l6 s12">
+            <h5>Is Node In Context</h5>
+            <div class="input-field">
+                <input id="isNodeInContext_nodeAddress" type="text" class="validate">
+                <label for="isNodeInContext_nodeAddress">Node Address</label>
+            </div>
+            <div class="input-field">
+                <input id="isNodeInContext_contextName" type="text" class="validate">
+                <label for="isNodeInContext_contextName">Context Name</label>
+            </div>
+            <a class="waves-effect waves-light btn" id="isNodeInContext">Execute</a>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col l6 s12">
+            <h5>Set Score</h5>
+            <div class="input-field">
+                <label for="setScore_userAddress">User Address</label>
+                <input id="setScore_userAddress" type="text" class="validate">
+            </div>
+            <div class="input-field">
+                <label for="setScore_contextName">Context Name</label>
+                <input id="setScore_contextName" type="text" class="validate">
+            </div>
+            <div class="input-field">
+                <label for="setScore_score">Score</label>
+                <input id="setScore_score" type="text" class="validate">
+            </div>
+            <a class="waves-effect waves-light btn" id="signScore">Execute</a>
+        </div>
+        <div class="col l6 s12">
+            <h5>Get Score</h5>
+            <div class="input-field">
+                <input id="getScore_userAddress" type="text" class="validate">
+                <label for="getScore_userAddress">User Address</label>
+            </div>
+            <div class="input-field">
+                <input id="getScore_contextName" type="text" class="validate">
+                <label for="getScore_contextName">Context Name</label>
+            </div>
+            <a class="waves-effect waves-light btn" id="getScore">Execute</a>
+        </div>
+    </div>
+    <div id="modal1" class="modal">
+        <div class="modal-content">
+          <h4>Result</h4>
+          <h6 id="result"></h6>
+        </div>
+        <div class="modal-footer">
+          <a href="#!" class="modal-close waves-effect waves-green btn-flat">OK</a>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,12 @@
+body {
+    background-color:#F0F0F0;
+    padding: 2em;
+    font-family: 'Raleway','Source Sans Pro', 'Arial';
+    height: 100%;
+    margin: 0;
+}
+
+.row {
+    margin: 2em;
+    padding: 1em;
+}
