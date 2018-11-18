@@ -1,4 +1,4 @@
-# from web3.auto import w3
+from web3.auto import w3
 
 my_add = {
     'user1': {
