@@ -1,0 +1,13 @@
+{
+  "roles": [
+      { "name": "Increment the counter", "id": "INCREMENT_ROLE", "params": [] },
+      { "name": "Decrement the counter", "id": "DECREMENT_ROLE", "params": [] }
+  ],
+  "path": "contracts/BrightID.sol",
+  "environments": {
+    "default": {
+      "network": "development",
+      "appName": "foo.aragonpm.eth"
+    }
+  }
+}

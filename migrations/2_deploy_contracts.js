@@ -1,4 +1,5 @@
-var BrightID = artifacts.require("BrightID");
-module.exports = function(deployer) {
-    deployer.deploy(BrightID);
-};
+var BrightID = artifacts.require('BrightID.sol')
+
+module.exports = function (deployer) {
+  deployer.deploy(BrightID)
+}
