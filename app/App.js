@@ -5,8 +5,11 @@ import {
   Text,
   Field,
   TextInput,
+  DropDown,
   Table, TableHeader, TableRow, TableCell,
-  AppView, BaseStyles, PublicUrl, AppBar,
+  AppView,
+  BaseStyles,
+  AppBar,
   SidePanel,
   observe
 } from '@aragon/ui'
@@ -20,11 +23,11 @@ const AppContainer = styled(AragonApp)`
 `
 
 function string2hex(tmp) {
-  var str = '';
+  var str = ''
   for(var i = 0; i < tmp.length; i++) {
-    str += tmp[i].charCodeAt(0).toString(16);
+    str += tmp[i].charCodeAt(0).toString(16)
   }
-  return '0x'+str;
+  return '0x'+str
 }
 
 function hex2string(hex) {
@@ -45,8 +48,12 @@ export default class App extends React.Component {
   state = {
     isOpenContextForm: false,
     isOpenNodeForm: false,
-    message: '',
+    activeItem: 0,
     nodes: {},
+  }
+
+  handleChange(index) {
+    this.setState({ activeItem: index })
   }
 
   loadAccounts = () => {
@@ -68,7 +75,7 @@ export default class App extends React.Component {
   }
 
   addNodeToContext = () => {
-    this.props.app.addNodeToContext(string2hex(this.state.addNodeToContext_contextName), this.state.addNodeToContext_nodeAddress);
+    this.props.app.addNodeToContext(string2hex(this.state.addNodeToContext_contextName), this.state.addNodeToContext_nodeAddress)
     this.setState({
       isOpenNodeForm: false
     })
@@ -98,14 +105,15 @@ export default class App extends React.Component {
       let address = event.returnValues.nodeAddress
       if (event.event === "LogAddContext" && event.returnValues.owner.toLowerCase() == owner.toLowerCase()) {
         this._nodes[name] = []
+        visited[name] = {}
       }
-      else if (event.event === "LogAddNodeToContext" && (name in this._nodes) && !(address in visited)) {
-        visited[address] = true
+      else if (event.event === "LogAddNodeToContext" && (name in this._nodes) && visited[name][address]!=true) {
+        visited[name][address] = true
         this._nodes[name].push(address)
       }
-      else if (event.event === "LogRemoveNodeFromContext" && (name in this._nodes) && (address in visited)) {
-        visited[address] = false
-        this._nodes[name].splice(this._nodes[name].indexOf(address), 1);
+      else if (event.event === "LogRemoveNodeFromContext" && (name in this._nodes) && visited[name][address]==true) {
+        visited[name][address] = false
+        this._nodes[name].splice(this._nodes[name].indexOf(address), 1)
       }
       this.setState({
         nodes: JSON.parse(JSON.stringify(this._nodes)),
@@ -114,7 +122,7 @@ export default class App extends React.Component {
   }
 
   render () {
-    const { isOpenNodeForm, isOpenContextForm, message, nodes } = this.state
+    const { isOpenNodeForm, isOpenContextForm, activeItem, nodes } = this.state
     return (
       <AragonApp>
         <BaseStyles />
@@ -175,6 +183,7 @@ export default class App extends React.Component {
             <Field label="Context">
               <TextInput
                 wide
+                required
                 onChange={evt => this.setState({addContext_contextName: evt.target.value})}
               />
             </Field>
@@ -187,14 +196,19 @@ export default class App extends React.Component {
             onClose={() => this.setState({isOpenNodeForm: false})}
           >
             <Field label="Context">
-              <TextInput
+              <DropDown
+                items={Object.keys(nodes)}
                 wide
-                onChange={evt => this.setState({addNodeToContext_contextName: evt.target.value})}
+                required
+                active={this.state.activeItem}
+                onChange={this.handleChange}
               />
             </Field>
             <Field label="Node">
               <TextInput
                 wide
+                placeholder="Node's Ethereum Address"
+                required
                 onChange={evt => this.setState({addNodeToContext_nodeAddress: evt.target.value})}
               />
             </Field>
