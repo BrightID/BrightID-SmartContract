@@ -75,7 +75,11 @@ export default class App extends React.Component {
   }
 
   addNodeToContext = () => {
-    this.props.app.addNodeToContext(string2hex(this.state.addNodeToContext_contextName), this.state.addNodeToContext_nodeAddress)
+    if (this.state.addNodeToContext_contextName) {
+      this.props.app.addNodeToContext(string2hex(this.state.addNodeToContext_contextName), this.state.addNodeToContext_nodeAddress)
+    } else {
+      this.props.app.addNodeToContext(string2hex(Object.keys(this.state.nodes)[0]), this.state.addNodeToContext_nodeAddress)
+    }
     this.setState({
       isOpenNodeForm: false
     })
@@ -86,13 +90,16 @@ export default class App extends React.Component {
   }
 
   addContextForm = () => {
+
     this.setState({
+      addContext_contextName: '',
       isOpenContextForm: true,
     })
   }
 
   addNodeForm = () => {
     this.setState({
+      addNodeToContext_nodeAddress: '',
       isOpenNodeForm: true
     })
   }
@@ -184,6 +191,7 @@ export default class App extends React.Component {
               <TextInput
                 wide
                 required
+                value={this.state.addContext_contextName}
                 onChange={evt => this.setState({addContext_contextName: evt.target.value})}
               />
             </Field>
@@ -201,13 +209,17 @@ export default class App extends React.Component {
                 wide
                 required
                 active={this.state.activeItem}
-                onChange={this.handleChange}
+                onChange={(index, items) => {
+                  this.setState({activeItem: index})
+                  this.setState({addNodeToContext_contextName: items[index]})
+                }}
               />
             </Field>
             <Field label="Node">
               <TextInput
                 wide
                 placeholder="Node's Ethereum Address"
+                value={this.state.addNodeToContext_nodeAddress}
                 required
                 onChange={evt => this.setState({addNodeToContext_nodeAddress: evt.target.value})}
               />
