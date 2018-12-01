@@ -10,17 +10,10 @@ import {
   AppView,
   BaseStyles,
   AppBar,
-  SidePanel,
-  observe
+  SidePanel
 } from '@aragon/ui'
 import Aragon, { providers } from '@aragon/client'
 import styled from 'styled-components'
-
-const AppContainer = styled(AragonApp)`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-`
 
 function string2hex(tmp) {
   var str = ''

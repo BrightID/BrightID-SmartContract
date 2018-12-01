@@ -46,8 +46,6 @@ contract BrightID is AragonApp {
 
     function initialize() onlyInit public {
         initialized();
-        owner = msg.sender;
-        addContext('Aragon');
     }
 
     /**
