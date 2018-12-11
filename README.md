@@ -34,10 +34,12 @@ python main.py
 
 ### Test submitting scores signed by node to smart contract
 
-Run sample node server by:
+* Run sample node server by:
 
 ```
 cd tests/js/
-python server.py
+python server.py node_private_key      
 ```
-Then go to `localhost:5555` to submit scores to BrightID smart contract.
+node_private_key is a private key which is used to sign the score by this sample node server. You should add the address of this private key as node to the context you want sumbit scores to on the BrightID smart contract.
+
+* Then go to `localhost:5555` to submit scores to BrightID smart contract.
