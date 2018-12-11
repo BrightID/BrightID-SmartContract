@@ -1,4 +1,4 @@
-### Install Required Modules:
+### Install
 
 Test BrightID Settings App (implemented as an aragon app)
 ```
