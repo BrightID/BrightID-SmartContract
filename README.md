@@ -1,6 +1,3 @@
-### Prerequisite:
-* python3.5+
-
 ### Install Required Modules:
 
 Test BrightID Settings App (implemented as an aragon app)
