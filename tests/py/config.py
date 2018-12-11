@@ -26,4 +26,4 @@ GAS = 2000000
 GAS_PRICE = 150*10**9
 UNIT = 1.0*10**18
 INFURA_ENDPOINT = 'https://ropsten.infura.io/c556c4fcd2d64c41baef3ef84e33052a'
-CONTRACT_ADD = w3.toChecksumAddress('0x3b2440f4fce063d51d00225a959c9dad95a3dfe2')
+CONTRACT_ADD = w3.toChecksumAddress('0x28bac97a889685fb278cd577b0cd267500c0e478')

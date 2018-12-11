@@ -8,6 +8,7 @@ import os
 import json
 import sys
 import string
+from shutil import copyfile
 
 abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
@@ -50,6 +51,7 @@ def sign_score():
 
 
 if __name__ == '__main__':
+    copyfile('../../build/contracts/BrightID.json', './static/BrightID.json')
     if not (len(sys.argv) == 2 and sys.argv[1].startswith('0x')
             and all(c in string.hexdigits for c in sys.argv[1][2:])):
         print('''Usage: python server.py node_private_key

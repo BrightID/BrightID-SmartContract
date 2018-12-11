@@ -113,7 +113,7 @@ def remove_node_from_context(context_name, node_addr, owner_add, owner_private):
 
 
 def set_user_score(user_add, context_name, score, timestamp, node_addr, node_private):
-    print('setScore: "{0}" for "{1}" in "{2}"'.format(score, node_addr, context_name))
+    print('setScore: "{0}" for "{1}" in "{2}"'.format(score, user_add, context_name))
     msg = '{0}{1}{2}'.format(
         pad32(hex2int(user_add)),
         pad32(score),
@@ -138,7 +138,7 @@ def get_user_score(user_add, context_name):
     print('getScore: "{0}" in "{1}"'.format(user_add, context_name))
     part1 = sha3.keccak_256(b'getScore(address,bytes32)').hexdigest()[:8]
     part2 = pad32(hex2int(user_add)).lower()
-    part3 = pad32(int.from_bytes(context_name.encode(), 'big'))
+    part3 = str2bytes32(context_name)
     data = '0x{0}{1}{2}'.format(part1, part2, part3)
     result = send_eth_call(data)
     print(hex2int(result[:66]), hex2int('0x'+result[66:]))
