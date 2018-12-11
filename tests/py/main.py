@@ -5,6 +5,7 @@ import sha3
 from ganache import *
 # from infura import *
 import config
+import random
 
 
 def hex2int(s):
@@ -36,106 +37,77 @@ def sign_transaction(data, signer, priv):
 
 
 def is_user(user_add):
-    print('isUser:')
+    print('isUser: {0}'.format(user_add))
     part1 = sha3.keccak_256(b'isUser(address)').hexdigest()[:8]
     part2 = pad32(hex2int(user_add))
-    func_hash = '0x{0}{1}'.format(part1, part2)
-    result = send_eth_call(func_hash)
-    print(hex2int(result) == 1)
-
-
-def is_node(node_add):
-    print('isNode:')
-    part1 = sha3.keccak_256(b'isNode(address)').hexdigest()[:8]
-    part2 = pad32(hex2int(node_add.lower()))
-    func_hash = '0x{0}{1}'.format(part1, part2)
-    result = send_eth_call(func_hash)
+    data = '0x{0}{1}'.format(part1, part2)
+    result = send_eth_call(data)
     print(hex2int(result) == 1)
 
 
 def is_context(context_name):
-    print('isContext:')
+    print('isContext: {0}'.format(context_name))
     part1 = sha3.keccak_256(b'isContext(bytes32)').hexdigest()[:8]
     part2 = pad32(int.from_bytes(context_name.encode(), 'big'))
-    func_hash = '0x{0}{1}'.format(part1, part2)
-    result = send_eth_call(func_hash)
+    data = '0x{0}{1}'.format(part1, part2)
+    result = send_eth_call(data)
     print(hex2int(result) == 1)
 
 
-def is_node_in_context(context_name, node_add):
-    print('isNodeInContext:')
+def is_node_in_context(context_name, node_addr):
+    print('isNodeInContext: "{0}" in "{1}"'.format(node_addr, context_name))
     part1 = sha3.keccak_256(b'isNodeInContext(bytes32,address)').hexdigest()[:8]
     part2 = pad32(int.from_bytes(context_name.encode(), 'big'))
-    part3 = pad32(hex2int(node_add))
-    func_hash = '0x{0}{1}{2}'.format(part1, part2, part3)
-    result = send_eth_call(func_hash)
+    part3 = pad32(hex2int(node_addr))
+    data = '0x{0}{1}{2}'.format(part1, part2, part3)
+    result = send_eth_call(data)
     print(hex2int(result) == 1)
-
-
-def add_node(account):
-    print('addNode:')
-    part1 = sha3.keccak_256(b'addNode(address)').hexdigest()[:8]
-    part2 = pad32(hex2int(account)).lower()
-    func_hash = '0x{0}{1}'.format(part1, part2)
-    raw_transaction = sign_transaction(func_hash, config.BASE_ACCOUNT, config.BASE_ACCOUNT_PRIVATE)
-    result = send_raw_transaction(raw_transaction)
-    print(result)
-
-
-def remove_node(node_add, node_private):
-    print('removeNode:')
-    part1 = sha3.keccak_256(b'removeNode(address)').hexdigest()[:8]
-    part2 = pad32(hex2int(node_add)).lower()
-    func_hash = '0x{0}{1}'.format(part1, part2)
-    raw_transaction = sign_transaction(func_hash, node_add, node_private)
-    result = send_raw_transaction(raw_transaction)
-    print(result)
 
 
 def add_context(context_name):
-    print('addContext:')
+    print('addContext: {0}'.format(context_name))
     part1 = sha3.keccak_256(b'addContext(bytes32)').hexdigest()[:8]
     part2 = pad32(int.from_bytes(context_name.encode(), 'big'))
-    func_hash = '0x{0}{1}'.format(part1, part2)
-    raw_transaction = sign_transaction(func_hash, config.BASE_ACCOUNT, config.BASE_ACCOUNT_PRIVATE)
+    data = '0x{0}{1}'.format(part1, part2)
+    raw_transaction = sign_transaction(data, config.BASE_ACCOUNT, config.BASE_ACCOUNT_PRIVATE)
     result = send_raw_transaction(raw_transaction)
-    print(result)
+    print('tx: {0}'.format(result))
 
 
 def remove_context(context_name, owner_add, owner_private):
-    print('removeContext:')
+    print('removeContext: {0}'.format(context_name))
     part1 = sha3.keccak_256(b'removeContext(bytes32)').hexdigest()[:8]
     part2 = pad32(int.from_bytes(context_name.encode(), 'big'))
-    func_hash = '0x{0}{1}'.format(part1, part2)
-    raw_transaction = sign_transaction(func_hash, owner_add, owner_private)
+    data = '0x{0}{1}'.format(part1, part2)
+    raw_transaction = sign_transaction(data, owner_add, owner_private)
     result = send_raw_transaction(raw_transaction)
-    print(result)
+    print('tx: {0}'.format(result))
 
 
-def add_node_to_context(context_name, node_add):
-    print('addNodeToContext:')
+def add_node_to_context(context_name, node_addr):
+    print('addNodeToContext: "{0}" to "{1}"'.format(node_addr, context_name))
     part1 = sha3.keccak_256(b'addNodeToContext(bytes32,address)').hexdigest()[:8]
     part2 = pad32(int.from_bytes(context_name.encode(), 'big'))
-    part3 = pad32(hex2int(node_add)).lower()
-    func_hash = '0x{0}{1}{2}'.format(part1, part2, part3)
-    raw_transaction = sign_transaction(func_hash, config.BASE_ACCOUNT, config.BASE_ACCOUNT_PRIVATE)
+    part3 = pad32(hex2int(node_addr)).lower()
+    data = '0x{0}{1}{2}'.format(part1, part2, part3)
+    raw_transaction = sign_transaction(data, config.BASE_ACCOUNT, config.BASE_ACCOUNT_PRIVATE)
     result = send_raw_transaction(raw_transaction)
-    print(result)
+    print('tx: {0}'.format(result))
 
 
-def remove_node_from_context(context_name, node_add, owner_add, owner_private):
-    print('removeNodeFromContext:')
+def remove_node_from_context(context_name, node_addr, owner_add, owner_private):
+    print('removeNodeFromContext: "{0}" from "{1}"'.format(node_addr, context_name))
     part1 = sha3.keccak_256(b'removeNodeFromContext(bytes32,address)').hexdigest()[:8]
     part2 = pad32(int.from_bytes(context_name.encode(), 'big'))
-    part3 = pad32(hex2int(node_add)).lower()
-    func_hash = '0x{0}{1}{2}'.format(part1, part2, part3)
-    raw_transaction = sign_transaction(func_hash, owner_add, owner_private)
+    part3 = pad32(hex2int(node_addr)).lower()
+    data = '0x{0}{1}{2}'.format(part1, part2, part3)
+    raw_transaction = sign_transaction(data, owner_add, owner_private)
     result = send_raw_transaction(raw_transaction)
-    print(result)
+    print('tx: {0}'.format(result))
 
 
-def set_user_score(user_add, context_name, score, timestamp, node_add, node_private):
-    print('setScore:')
+def set_user_score(user_add, context_name, score, timestamp, node_addr, node_private):
+    print('setScore: "{0}" for "{1}" in "{2}"'.format(score, node_addr, context_name))
     msg = '{0}{1}{2}'.format(
         pad32(hex2int(user_add)),
         pad32(score),
@@ -151,50 +123,52 @@ def set_user_score(user_add, context_name, score, timestamp, node_add, node_priv
     part7 = pad32(signed_message['s'])
     part8 = pad32(signed_message['v'])
     data = '0x{0}{1}{2}{3}{4}{5}{6}{7}'.format(part1, part2, part3, part4, part5, part6, part7, part8)
-    raw_transaction = sign_transaction(data, node_add, node_private)
+    raw_transaction = sign_transaction(data, node_addr, node_private)
     result = send_raw_transaction(raw_transaction)
-    print(result)
+    print('tx: {0}'.format(result))
 
 
 def get_user_score(user_add, context_name):
-    print('getScore:')
+    print('getScore: "{0}" in "{1}"'.format(user_add, context_name))
     part1 = sha3.keccak_256(b'getScore(address,bytes32)').hexdigest()[:8]
     part2 = pad32(hex2int(user_add)).lower()
     part3 = pad32(int.from_bytes(context_name.encode(), 'big'))
-    func_hash = '0x{0}{1}{2}'.format(part1, part2, part3)
-    result = send_eth_call(func_hash)
+    data = '0x{0}{1}{2}'.format(part1, part2, part3)
+    result = send_eth_call(data)
     print(hex2int(result[:66]), hex2int('0x'+result[66:]))
 
 
+def run(context_name):
+    add_context(context_name)
+    time.sleep(1)
+    is_context(context_name)
+    remove_context(context_name, config.BASE_ACCOUNT, config.BASE_ACCOUNT_PRIVATE)
+    time.sleep(1)
+    is_context(context_name)
+    add_context(context_name)
+    print()
+    print('#'*20+' Context tests passed '+'#'*20)
+    print()
+
+    add_node_to_context(context_name, config.USERS['node1']['addr'])
+    time.sleep(1)
+    is_node_in_context(context_name, config.USERS['node1']['addr'])
+    remove_node_from_context(context_name, config.USERS['node1']['addr'], config.BASE_ACCOUNT, config.BASE_ACCOUNT_PRIVATE)
+    time.sleep(1)
+    is_node_in_context(context_name, config.USERS['node1']['addr'])
+    add_node_to_context(context_name, config.USERS['node1']['addr'])
+    print()
+    print('#'*20+' Node tests passed '+'#'*20)
+    print()
+
+    set_user_score(config.USERS['user1']['addr'], context_name, 63, int(time.time()), config.USERS['node1']['addr'], config.USERS['node1']['private'])
+    time.sleep(1)
+    is_user(config.USERS['user1']['addr'])
+    get_user_score(config.USERS['user1']['addr'], context_name)
+    print()
+    print('#'*20+' Score tests passed '+'#'*20)
+    print()
+
 if __name__ == '__main__':
-    add_node(config.my_add['node1']['add'])
-    time.sleep(1)
-    is_node(config.my_add['node1']['add'])
-    remove_node(config.my_add['node1']['add'], config.my_add['node1']['p_key'])
-    time.sleep(1)
-    is_node(config.my_add['node1']['add'])
-    add_node(config.my_add['node1']['add'])
-    print('*'*50)
-
-    add_context('abram_context')
-    time.sleep(1)
-    is_context('abram_context')
-    remove_context('abram_context', config.BASE_ACCOUNT, config.BASE_ACCOUNT_PRIVATE)
-    time.sleep(1)
-    is_context('abram_context')
-    add_context('abram_context')
-    print('*'*50)
-
-    add_node_to_context('abram_context', config.my_add['node1']['add'])
-    time.sleep(1)
-    is_node_in_context('abram_context', config.my_add['node1']['add'])
-    remove_node_from_context('abram_context', config.my_add['node1']['add'], config.BASE_ACCOUNT, config.BASE_ACCOUNT_PRIVATE)
-    time.sleep(1)
-    is_node_in_context('abram_context', config.my_add['node1']['add'])
-    add_node_to_context('abram_context', config.my_add['node1']['add'])
-    print('*'*50)
-
-    set_user_score(config.my_add['user1']['add'], 'abram_context', 63, int(time.time()), config.my_add['node1']['add'], config.my_add['node1']['p_key'])
-    time.sleep(1)
-    is_user(config.my_add['user1']['add'])
-    get_user_score(config.my_add['user1']['add'], 'abram_context')
+    context_name = 'context_{}'.format(random.randint(1,1000))
+    run(context_name)

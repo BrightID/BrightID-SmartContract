@@ -103,7 +103,6 @@ contract BrightID is AragonApp {
         bytes32 r,
         bytes32 s,
         uint8 v)
-        isInitialized
         public
     {
         address signerAddress = signer(r, s, v, userAddress, score, timestamp);
@@ -139,7 +138,6 @@ contract BrightID is AragonApp {
      * @param contextName The context's name.
      */
     function addContext(bytes32 contextName)
-        isInitialized
         public
     {
         require(contexts[contextName].isActive != true, ALREADY_EXISTS);
@@ -153,7 +151,6 @@ contract BrightID is AragonApp {
      * @param contextName The context's name.
      */
     function removeContext(bytes32 contextName)
-        isInitialized
         public
     {
         require(isContext(contextName), CONTEXT_NA);
@@ -168,7 +165,6 @@ contract BrightID is AragonApp {
      * @param nodeAddress The node's address.
      */
     function addNodeToContext(bytes32 contextName, address nodeAddress)
-        isInitialized
         public
     {
         require(isContext(contextName), CONTEXT_NA);
@@ -184,7 +180,6 @@ contract BrightID is AragonApp {
      * @param nodeAddress The node's address.
      */
     function removeNodeFromContext(bytes32 contextName, address nodeAddress)
-        isInitialized
         public
     {
         require(isContext(contextName), CONTEXT_NA);
