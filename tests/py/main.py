@@ -17,6 +17,12 @@ def pad32(n):
     return format(n, '064X')
 
 
+def str2bytes32(s):
+    assert len(s) <= 32
+    padding = (2*(32-len(s))) * '0'
+    return (bytes(s, 'utf-8')).hex()+padding
+
+
 def new_address():
     rand_hex = uuid.uuid4().hex
     account = w3.eth.account.create(rand_hex)
@@ -48,7 +54,7 @@ def is_user(user_add):
 def is_context(context_name):
     print('isContext: {0}'.format(context_name))
     part1 = sha3.keccak_256(b'isContext(bytes32)').hexdigest()[:8]
-    part2 = pad32(int.from_bytes(context_name.encode(), 'big'))
+    part2 = str2bytes32(context_name)
     data = '0x{0}{1}'.format(part1, part2)
     result = send_eth_call(data)
     print(hex2int(result) == 1)
@@ -57,7 +63,7 @@ def is_context(context_name):
 def is_node_in_context(context_name, node_addr):
     print('isNodeInContext: "{0}" in "{1}"'.format(node_addr, context_name))
     part1 = sha3.keccak_256(b'isNodeInContext(bytes32,address)').hexdigest()[:8]
-    part2 = pad32(int.from_bytes(context_name.encode(), 'big'))
+    part2 = str2bytes32(context_name)
     part3 = pad32(hex2int(node_addr))
     data = '0x{0}{1}{2}'.format(part1, part2, part3)
     result = send_eth_call(data)
@@ -67,7 +73,7 @@ def is_node_in_context(context_name, node_addr):
 def add_context(context_name):
     print('addContext: {0}'.format(context_name))
     part1 = sha3.keccak_256(b'addContext(bytes32)').hexdigest()[:8]
-    part2 = pad32(int.from_bytes(context_name.encode(), 'big'))
+    part2 = str2bytes32(context_name)
     data = '0x{0}{1}'.format(part1, part2)
     raw_transaction = sign_transaction(data, config.BASE_ACCOUNT, config.BASE_ACCOUNT_PRIVATE)
     result = send_raw_transaction(raw_transaction)
@@ -77,7 +83,7 @@ def add_context(context_name):
 def remove_context(context_name, owner_add, owner_private):
     print('removeContext: {0}'.format(context_name))
     part1 = sha3.keccak_256(b'removeContext(bytes32)').hexdigest()[:8]
-    part2 = pad32(int.from_bytes(context_name.encode(), 'big'))
+    part2 = str2bytes32(context_name)
     data = '0x{0}{1}'.format(part1, part2)
     raw_transaction = sign_transaction(data, owner_add, owner_private)
     result = send_raw_transaction(raw_transaction)
@@ -87,7 +93,7 @@ def remove_context(context_name, owner_add, owner_private):
 def add_node_to_context(context_name, node_addr):
     print('addNodeToContext: "{0}" to "{1}"'.format(node_addr, context_name))
     part1 = sha3.keccak_256(b'addNodeToContext(bytes32,address)').hexdigest()[:8]
-    part2 = pad32(int.from_bytes(context_name.encode(), 'big'))
+    part2 = str2bytes32(context_name)
     part3 = pad32(hex2int(node_addr)).lower()
     data = '0x{0}{1}{2}'.format(part1, part2, part3)
     raw_transaction = sign_transaction(data, config.BASE_ACCOUNT, config.BASE_ACCOUNT_PRIVATE)
@@ -98,7 +104,7 @@ def add_node_to_context(context_name, node_addr):
 def remove_node_from_context(context_name, node_addr, owner_add, owner_private):
     print('removeNodeFromContext: "{0}" from "{1}"'.format(node_addr, context_name))
     part1 = sha3.keccak_256(b'removeNodeFromContext(bytes32,address)').hexdigest()[:8]
-    part2 = pad32(int.from_bytes(context_name.encode(), 'big'))
+    part2 = str2bytes32(context_name)
     part3 = pad32(hex2int(node_addr)).lower()
     data = '0x{0}{1}{2}'.format(part1, part2, part3)
     raw_transaction = sign_transaction(data, owner_add, owner_private)
@@ -116,7 +122,7 @@ def set_user_score(user_add, context_name, score, timestamp, node_addr, node_pri
     signed_message = w3.eth.account.signHash(message_hash, private_key=node_private)
     part1 = sha3.keccak_256(b'setScore(address,bytes32,uint32,uint32,bytes32,bytes32,uint8)').hexdigest()[:8]
     part2 = pad32(hex2int(user_add))
-    part3 = pad32(int.from_bytes(context_name.encode(), 'big'))
+    part3 = str2bytes32(context_name)
     part4 = pad32(score)
     part5 = pad32(timestamp)
     part6 = pad32(signed_message['r'])
