@@ -1,15 +1,13 @@
 pragma solidity ^0.4.24;
 
-import "@aragon/os/contracts/apps/AragonApp.sol";
-import "@aragon/os/contracts/lib/math/SafeMath.sol";
 
-contract BrightID is AragonApp {
+contract BrightID {
 
     address public owner;
 
     struct Score {
         uint32 value;
-        uint32 timestamp;
+        uint64 timestamp;
     }
 
     struct User {
@@ -38,18 +36,15 @@ contract BrightID is AragonApp {
     string private constant BAD_SIGNATURE = "BAD_SIGNATURE";
 
     /// Events
-    event LogSetScore(address userAddress, bytes32 contextName, uint32 score, uint32 timestamp);
+    event LogSetScore(address userAddress, bytes32 contextName, uint32 score, uint64 timestamp);
     event LogAddContext(bytes32 indexed contextName, address indexed owner);
     event LogRemoveContext(bytes32 indexed contextName, address indexed owner);
     event LogAddNodeToContext(bytes32 indexed contextName, address nodeAddress);
     event LogRemoveNodeFromContext(bytes32 indexed contextName, address nodeAddress);
 
-    function initialize() onlyInit public {
-        initialized();
-    }
 
     /**
-     * @notice Check if a user exists.
+     * @notice Check whether `userAddress` is a valid user.
      * @param userAddress The user's address.
      */
     function isUser(address userAddress)
@@ -61,7 +56,7 @@ contract BrightID is AragonApp {
     }
 
     /**
-     * @notice Check if a context exists.
+     * @notice Check whether the context name exists.
      * @param contextName The context's name.
      */
     function isContext(bytes32 contextName)
@@ -73,7 +68,7 @@ contract BrightID is AragonApp {
     }
 
     /**
-     * @notice Check each if a node's signature is acceptable for a context.
+     * @notice Check whether `nodeAddress`'s signature is acceptable for the context.
      * @param contextName The context's name.
      * @param nodeAddress The node's address.
      */
@@ -86,7 +81,7 @@ contract BrightID is AragonApp {
     }
 
     /**
-     * @notice Set score for user.
+     * @notice Set `score` as score for `userAddress`.
      * @param userAddress The user's address.
      * @param contextName The context's name.
      * @param score The user's score.
@@ -99,7 +94,7 @@ contract BrightID is AragonApp {
         address userAddress,
         bytes32 contextName,
         uint32 score,
-        uint32 timestamp,
+        uint64 timestamp,
         bytes32 r,
         bytes32 s,
         uint8 v)
@@ -117,7 +112,7 @@ contract BrightID is AragonApp {
     }
 
     /**
-     * @notice Get user's score.
+     * @notice Get `userAddress`'s score in the context.
      * @param userAddress the user's address.
      * @param contextName the context's name.
      */
@@ -126,7 +121,7 @@ contract BrightID is AragonApp {
         bytes32 contextName)
         public
         view
-        returns(uint32, uint32)
+        returns(uint32, uint64)
     {
         require(isUser(userAddress), USER_NA);
         require(users[userAddress].scores[contextName].timestamp != 0, SCORE_FOR_CONTEXT_NA);
@@ -147,50 +142,50 @@ contract BrightID is AragonApp {
     }
 
     /**
-     * @notice Remove a context.
+     * @notice Remove the context.
      * @param contextName The context's name.
      */
     function removeContext(bytes32 contextName)
         public
+        onlyContextOwner(contextName)
     {
         require(isContext(contextName), CONTEXT_NA);
-        require(msg.sender == contexts[contextName].owner, CONTEXT_OWNER_ONLY);
         contexts[contextName].isActive = false;
         emit LogRemoveContext(contextName, msg.sender);
     }
 
     /**
-     * @notice Add a node to a context.
+     * @notice Add `nodeAddress` as a node to the context.
      * @param contextName The context's name.
      * @param nodeAddress The node's address.
      */
     function addNodeToContext(bytes32 contextName, address nodeAddress)
         public
+        onlyContextOwner(contextName)
     {
         require(isContext(contextName), CONTEXT_NA);
-        require(contexts[contextName].owner == msg.sender, CONTEXT_OWNER_ONLY);
         require(contexts[contextName].nodes[nodeAddress] != true, ALREADY_EXISTS);
         contexts[contextName].nodes[nodeAddress] = true;
         emit LogAddNodeToContext(contextName, nodeAddress);
     }
 
     /**
-     * @notice Remove a node from a context.
+     * @notice Remove `nodeAddress` from the context's nodes.
      * @param contextName The context's name.
      * @param nodeAddress The node's address.
      */
     function removeNodeFromContext(bytes32 contextName, address nodeAddress)
         public
+        onlyContextOwner(contextName)
     {
         require(isContext(contextName), CONTEXT_NA);
-        require(contexts[contextName].owner == msg.sender, CONTEXT_OWNER_ONLY);
         require(contexts[contextName].nodes[nodeAddress] == true, NODE_NA);
         contexts[contextName].nodes[nodeAddress] = false;
         emit LogRemoveNodeFromContext(contextName, nodeAddress);
     }
 
     /**
-     * @notice Find the signer of a signature.
+     * @dev Find the signer of a signature.
      * @param r signature's r.
      * @param s signature's s.
      * @param v signature's v.
@@ -204,7 +199,7 @@ contract BrightID is AragonApp {
         uint8 v,
         address userAddress,
         uint32 score,
-        uint32 timestamp)
+        uint64 timestamp)
         internal
         pure
         returns(address addr)
@@ -213,4 +208,12 @@ contract BrightID is AragonApp {
         return ecrecover(message, v, r, s);
     }
 
+    /**
+     * @dev Throws if called by any account other than the owner of the context.
+     * @param contextName The context's name.
+     */
+    modifier onlyContextOwner(bytes32 contextName) {
+    	require(contexts[contextName].owner == msg.sender, CONTEXT_OWNER_ONLY);
+        _;
+    }
 }
