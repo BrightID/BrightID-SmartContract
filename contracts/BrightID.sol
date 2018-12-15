@@ -3,8 +3,6 @@ pragma solidity ^0.4.24;
 
 contract BrightID {
 
-    address public owner;
-
     struct Score {
         uint32 value;
         uint64 timestamp;
