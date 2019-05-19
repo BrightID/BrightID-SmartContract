@@ -23,23 +23,23 @@ contract BrightID {
     mapping(address => User) private users;
     mapping(bytes32 => Context) private contexts;
 
-    string private constant CONTEXT_NA = "CONTEXT_N/A";
-    string private constant NODE_NA = "NODE_N/A";
+    string private constant CONTEXT_NOT_FOUND = "CONTEXT_NOT_FOUND";
+    string private constant NODE_NOT_FOUND = "NODE_NOT_FOUND";
     string private constant ALREADY_EXISTS = "ALREADY_EXISTS";
     string private constant OLD_SCORE = "OLD_SCORE";
-    string private constant USER_NA = "USER_N/A";
-    string private constant SCORE_FOR_CONTEXT_NA = "SCORE_FOR_CONTEXT_N/A";
+    string private constant LOWER_SCORE = "Score can't be lower than the existing score.";
+    string private constant USER_NOT_FOUND = "USER_NOT_FOUND";
+    string private constant SCORE_FOR_CONTEXT_NOT_FOUND = "SCORE_FOR_CONTEXT_NOT_FOUND";
     string private constant CONTEXT_OWNER_ONLY = "CONTEXT_OWNER_ONLY";
-    string private constant INCOMPATIBLE_NODE = "INCOMPATIBLE_NODE";
+    string private constant UNAUTHORIZED_NODE = "UNAUTHORIZED_NODE";
     string private constant BAD_SIGNATURE = "BAD_SIGNATURE";
 
     /// Events
-    event LogSetScore(address userAddress, bytes32 contextName, uint32 score, uint64 timestamp);
-    event LogAddContext(bytes32 indexed contextName, address indexed owner);
-    event LogRemoveContext(bytes32 indexed contextName, address indexed owner);
-    event LogAddNodeToContext(bytes32 indexed contextName, address nodeAddress);
-    event LogRemoveNodeFromContext(bytes32 indexed contextName, address nodeAddress);
-
+    event LogSetScore(address userAddress, bytes32 context, uint32 score, uint64 timestamp);
+    event LogAddContext(bytes32 indexed context, address indexed owner);
+    event LogRemoveContext(bytes32 indexed context, address indexed owner);
+    event LogAddNodeToContext(bytes32 indexed context, address nodeAddress);
+    event LogRemoveNodeFromContext(bytes32 indexed context, address nodeAddress);
 
     /**
      * @notice Check whether `userAddress` is a valid user.
@@ -55,163 +55,128 @@ contract BrightID {
 
     /**
      * @notice Check whether the context name exists.
-     * @param contextName The context's name.
+     * @param context The context.
      */
-    function isContext(bytes32 contextName)
+    function isContext(bytes32 context)
         public
         view
         returns(bool ret)
     {
-        return contexts[contextName].isActive;
+        return contexts[context].isActive;
     }
 
     /**
      * @notice Check whether `nodeAddress`'s signature is acceptable for the context.
-     * @param contextName The context's name.
+     * @param context The context.
      * @param nodeAddress The node's address.
      */
-    function isNodeInContext(bytes32 contextName, address nodeAddress)
+    function isNodeInContext(bytes32 context, address nodeAddress)
         public
         view
         returns(bool ret)
     {
-        return contexts[contextName].nodes[nodeAddress];
+        return contexts[context].nodes[nodeAddress];
     }
 
     /**
-     * @notice Set `score` as score for `userAddress`.
+     * @notice Set `score` as score for `userAddress` under `context`.
      * @param userAddress The user's address.
-     * @param contextName The context's name.
+     * @param context The context.
      * @param score The user's score.
      * @param timestamp The score's timestamp.
+     * @param v signature's v.
      * @param r signature's r.
      * @param s signature's s.
-     * @param v signature's v.
      */
     function setScore(
         address userAddress,
-        bytes32 contextName,
+        bytes32 context,
         uint32 score,
         uint64 timestamp,
+        uint8 v,
         bytes32 r,
-        bytes32 s,
-        uint8 v)
+        bytes32 s)
         public
     {
-        address signerAddress = signer(r, s, v, userAddress, score, timestamp);
-        require(isContext(contextName), CONTEXT_NA);
+        bytes32 message = keccak256(abi.encode(userAddress, context, score, timestamp));
+        address signerAddress = ecrecover(message, v, r, s);
+        require(isContext(context), CONTEXT_NOT_FOUND);
         require(signerAddress != address(0), BAD_SIGNATURE);
-        require(contexts[contextName].nodes[signerAddress], INCOMPATIBLE_NODE);
-        require(users[userAddress].scores[contextName].timestamp < timestamp, OLD_SCORE);
-        users[userAddress].scores[contextName].value = score;
-        users[userAddress].scores[contextName].timestamp = timestamp;
+        require(contexts[context].nodes[signerAddress], UNAUTHORIZED_NODE);
+        require(users[userAddress].scores[context].timestamp < timestamp, OLD_SCORE);
+        require(score > users[userAddress].scores[context].value, LOWER_SCORE);
+        users[userAddress].scores[context].value = score;
+        users[userAddress].scores[context].timestamp = timestamp;
         users[userAddress].isActive = true;
-        emit LogSetScore(userAddress, contextName, score, timestamp);
+        emit LogSetScore(userAddress, context, score, timestamp);
     }
 
     /**
      * @notice Get `userAddress`'s score in the context.
      * @param userAddress the user's address.
-     * @param contextName the context's name.
+     * @param context the context.
      */
     function getScore(
         address userAddress,
-        bytes32 contextName)
+        bytes32 context)
         public
         view
         returns(uint32, uint64)
     {
-        require(isUser(userAddress), USER_NA);
-        require(users[userAddress].scores[contextName].timestamp != 0, SCORE_FOR_CONTEXT_NA);
-        return (users[userAddress].scores[contextName].value, users[userAddress].scores[contextName].timestamp);
+        require(isUser(userAddress), USER_NOT_FOUND);
+        require(users[userAddress].scores[context].timestamp != 0, SCORE_FOR_CONTEXT_NOT_FOUND);
+        return (users[userAddress].scores[context].value, users[userAddress].scores[context].timestamp);
     }
 
     /**
      * @notice Add a context.
-     * @param contextName The context's name.
+     * @param context The context.
      */
-    function addContext(bytes32 contextName)
+    function addContext(bytes32 context)
         public
     {
-        require(contexts[contextName].isActive != true, ALREADY_EXISTS);
-        contexts[contextName].isActive = true;
-        contexts[contextName].owner = msg.sender;
-        emit LogAddContext(contextName, msg.sender);
-    }
-
-    /**
-     * @notice Remove the context.
-     * @param contextName The context's name.
-     */
-    function removeContext(bytes32 contextName)
-        public
-        onlyContextOwner(contextName)
-    {
-        require(isContext(contextName), CONTEXT_NA);
-        contexts[contextName].isActive = false;
-        emit LogRemoveContext(contextName, msg.sender);
+        require(contexts[context].isActive != true, ALREADY_EXISTS);
+        contexts[context].isActive = true;
+        contexts[context].owner = msg.sender;
+        emit LogAddContext(context, msg.sender);
     }
 
     /**
      * @notice Add `nodeAddress` as a node to the context.
-     * @param contextName The context's name.
+     * @param context The context.
      * @param nodeAddress The node's address.
      */
-    function addNodeToContext(bytes32 contextName, address nodeAddress)
+    function addNodeToContext(bytes32 context, address nodeAddress)
         public
-        onlyContextOwner(contextName)
+        onlyContextOwner(context)
     {
-        require(isContext(contextName), CONTEXT_NA);
-        require(contexts[contextName].nodes[nodeAddress] != true, ALREADY_EXISTS);
-        contexts[contextName].nodes[nodeAddress] = true;
-        emit LogAddNodeToContext(contextName, nodeAddress);
+        require(isContext(context), CONTEXT_NOT_FOUND);
+        require(contexts[context].nodes[nodeAddress] != true, ALREADY_EXISTS);
+        contexts[context].nodes[nodeAddress] = true;
+        emit LogAddNodeToContext(context, nodeAddress);
     }
 
     /**
      * @notice Remove `nodeAddress` from the context's nodes.
-     * @param contextName The context's name.
+     * @param context The context.
      * @param nodeAddress The node's address.
      */
-    function removeNodeFromContext(bytes32 contextName, address nodeAddress)
+    function removeNodeFromContext(bytes32 context, address nodeAddress)
         public
-        onlyContextOwner(contextName)
+        onlyContextOwner(context)
     {
-        require(isContext(contextName), CONTEXT_NA);
-        require(contexts[contextName].nodes[nodeAddress] == true, NODE_NA);
-        contexts[contextName].nodes[nodeAddress] = false;
-        emit LogRemoveNodeFromContext(contextName, nodeAddress);
-    }
-
-    /**
-     * @dev Find the signer of a signature.
-     * @param r signature's r.
-     * @param s signature's s.
-     * @param v signature's v.
-     * @param userAddress The user address.
-     * @param score The user's score.
-     * @param timestamp The score's timestamp.
-     */
-    function signer(
-        bytes32 r,
-        bytes32 s,
-        uint8 v,
-        address userAddress,
-        uint32 score,
-        uint64 timestamp)
-        internal
-        pure
-        returns(address addr)
-    {
-        bytes32 message = keccak256(abi.encode(userAddress, score, timestamp));
-        return ecrecover(message, v, r, s);
+        require(isContext(context), CONTEXT_NOT_FOUND);
+        require(contexts[context].nodes[nodeAddress] == true, NODE_NOT_FOUND);
+        contexts[context].nodes[nodeAddress] = false;
+        emit LogRemoveNodeFromContext(context, nodeAddress);
     }
 
     /**
      * @dev Throws if called by any account other than the owner of the context.
-     * @param contextName The context's name.
+     * @param context The context.
      */
-    modifier onlyContextOwner(bytes32 contextName) {
-    	require(contexts[contextName].owner == msg.sender, CONTEXT_OWNER_ONLY);
+    modifier onlyContextOwner(bytes32 context) {
+    	require(contexts[context].owner == msg.sender, CONTEXT_OWNER_ONLY);
         _;
     }
 }
