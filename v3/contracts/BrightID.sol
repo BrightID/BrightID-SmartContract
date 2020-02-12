@@ -8,22 +8,18 @@ contract BrightID {
         address[] revokees;
     }
 
-    struct Verifiers {
-        uint256[] verifiersArray;
-        mapping(uint256 => bool) existanceMapping;
-    }
-
     struct Context {
         bool isActive;
         address owner;
         mapping(address => bool) nodes;
         mapping(uint256 => Account) accounts;
-        mapping(bytes32 => uint256) cIdTouId;
-        mapping(address => Verifiers) ethToUids;
+        mapping(bytes32 => uint256) cIdToUid;
+        mapping(address => uint256) ethToUid;
     }
 
     mapping(bytes32 => Context) private contexts;
 
+    string private constant DUPLICATE_ETHEREUM_ADDRESS = "Duplicate ethereumaddress";
     string private constant DUPLICATE_CONTEXT_ID = "Duplicate context id";
     string private constant INVALID_ADDRESS = "Invalid ethereum address";
     string private constant ONLY_CONTEXT_OWNER = "Only context owner";
@@ -81,7 +77,7 @@ contract BrightID {
         returns(uint256)
     {
         for(uint256 i=1; i < cIds.length-1; i++) {
-            uint256 uid = contexts[context].cIdTouId[cIds[i]];
+            uint256 uid = contexts[context].cIdToUid[cIds[i]];
             if (uid != 0) {
                 return uid;
             }
@@ -107,7 +103,8 @@ contract BrightID {
     {
         require(isContext(context), CONTEXT_NOT_FOUND);
         require(0 < cIds.length, NO_CONTEXT_ID);
-        require(contexts[context].cIdTouId[cIds[0]] == 0, DUPLICATE_CONTEXT_ID);
+        require(contexts[context].cIdToUid[cIds[0]] == 0, DUPLICATE_CONTEXT_ID);
+        require(contexts[context].ethToUid[msg.sender] == 0, DUPLICATE_ETHEREUM_ADDRESS);
 
         bytes32 message = keccak256(abi.encodePacked(context, cIds));
         address signerAddress = ecrecover(message, v, r, s);
@@ -117,13 +114,9 @@ contract BrightID {
         uint256 uid = getUid(context, cIds);
 
         for(uint256 i=0; i < cIds.length-1; i++) {
-            contexts[context].cIdTouId[cIds[i]] = uid;
+            contexts[context].cIdToUid[cIds[i]] = uid;
         }
 
-        if (!contexts[context].ethToUids[msg.sender].existanceMapping[uid]) {
-            contexts[context].ethToUids[msg.sender].existanceMapping[uid] = true;
-            contexts[context].ethToUids[msg.sender].verifiersArray.push(uid);
-        }
         if (contexts[context].accounts[uid].active != address(0)) {
             contexts[context].accounts[uid].revokees.push(contexts[context].accounts[uid].active);
         }
@@ -147,13 +140,9 @@ contract BrightID {
         require(isContext(context), CONTEXT_NOT_FOUND);
         require(ethAddress != address(0), INVALID_ADDRESS);
 
-        uint256[] memory uids = contexts[context].ethToUids[ethAddress].verifiersArray;
-        if (uids.length != 0) {
-            for (uint256 i=0; i < uids.length-1; i++) {
-                if (contexts[context].accounts[uids[i]].active == ethAddress) {
-                    return (true, contexts[context].accounts[uids[i]].revokees);
-                }
-            }
+        uint256 uid = contexts[context].ethToUid[ethAddress];
+        if (contexts[context].accounts[uid].active == ethAddress) {
+            return (true, contexts[context].accounts[uid].revokees);
         }
     }
 
