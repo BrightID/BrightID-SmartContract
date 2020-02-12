@@ -113,7 +113,7 @@ contract BrightID {
         for(uint256 i=0; i < cIds.length-1; i++) {
             contexts[context].cIdToUid[cIds[i]] = uid;
         }
-        // Now contexts[context].accounts[uid] can include duplicate members but we can handle this issue if needed.
+
         // The last member of contexts[context].accounts[uid] is active address of the user
         contexts[context].accounts[uid].push(msg.sender);
 
