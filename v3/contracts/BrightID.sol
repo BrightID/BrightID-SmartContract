@@ -108,6 +108,8 @@ contract BrightID {
 
         uint256 uid = getUid(context, cIds);
 
+        contexts[context].ethToUid[msg.sender] = uid;
+
         for(uint256 i=0; i < cIds.length-1; i++) {
             contexts[context].cIdToUid[cIds[i]] = uid;
         }
@@ -130,13 +132,11 @@ contract BrightID {
         view
         returns(bool, address[] memory)
     {
-        require(isContext(context), CONTEXT_NOT_FOUND);
-
         uint256 uid = contexts[context].ethToUid[ethAddress];
         if (uid != 0) {
             uint256 lastIndex = contexts[context].accounts[uid].length - 1;
             if (contexts[context].accounts[uid][lastIndex] == ethAddress) {
-                return (true, contexts[context].accounts[uid]);
+                return(true, contexts[context].accounts[uid]);
             }
         }
     }
