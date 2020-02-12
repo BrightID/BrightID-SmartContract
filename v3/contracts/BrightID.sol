@@ -109,7 +109,7 @@ contract BrightID {
         require(0 < cIds.length, NO_CONTEXT_ID);
         require(contexts[context].cIdTouId[cIds[0]] == 0, DUPLICATE_CONTEXT_ID);
 
-        bytes32 message = keccak256(abi.encode(context, cIds));
+        bytes32 message = keccak256(abi.encodePacked(context, cIds));
         address signerAddress = ecrecover(message, v, r, s);
         require(signerAddress != address(0), BAD_SIGNATURE);
         require(contexts[context].nodes[signerAddress], UNAUTHORIZED_NODE);
