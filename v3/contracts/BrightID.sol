@@ -3,23 +3,18 @@ pragma solidity ^0.5.0;
 contract BrightID {
     uint256 public id;
 
-    struct Account {
-        address active;
-        address[] revokees;
-    }
-
     struct Context {
         bool isActive;
         address owner;
         mapping(address => bool) nodes;
-        mapping(uint256 => Account) accounts;
+        mapping(uint256 => address[]) accounts;
         mapping(bytes32 => uint256) cIdToUid;
         mapping(address => uint256) ethToUid;
     }
 
     mapping(bytes32 => Context) private contexts;
 
-    string private constant DUPLICATE_ETHEREUM_ADDRESS = "Duplicate ethereumaddress";
+    string private constant DUPLICATE_ETHEREUM_ADDRESS = "Duplicate ethereum address";
     string private constant DUPLICATE_CONTEXT_ID = "Duplicate context id";
     string private constant INVALID_ADDRESS = "Invalid ethereum address";
     string private constant ONLY_CONTEXT_OWNER = "Only context owner";
@@ -116,11 +111,9 @@ contract BrightID {
         for(uint256 i=0; i < cIds.length-1; i++) {
             contexts[context].cIdToUid[cIds[i]] = uid;
         }
-
-        if (contexts[context].accounts[uid].active != address(0)) {
-            contexts[context].accounts[uid].revokees.push(contexts[context].accounts[uid].active);
-        }
-        contexts[context].accounts[uid].active = msg.sender;
+        // Now contexts[context].accounts[uid] can include duplicate members but we can handle this issue if needed.
+        // The last member of contexts[context].accounts[uid] is active address of the user
+        contexts[context].accounts[uid].push(msg.sender);
 
         emit AddressLinked(context, cIds[0], msg.sender);
     }
@@ -138,11 +131,13 @@ contract BrightID {
         returns(bool, address[] memory)
     {
         require(isContext(context), CONTEXT_NOT_FOUND);
-        require(ethAddress != address(0), INVALID_ADDRESS);
 
         uint256 uid = contexts[context].ethToUid[ethAddress];
-        if (contexts[context].accounts[uid].active == ethAddress) {
-            return (true, contexts[context].accounts[uid].revokees);
+        if (uid != 0) {
+            uint256 lastIndex = contexts[context].accounts[uid].length - 1;
+            if (contexts[context].accounts[uid][lastIndex] == ethAddress) {
+                return (true, contexts[context].accounts[uid]);
+            }
         }
     }
 
