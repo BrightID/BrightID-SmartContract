@@ -41,5 +41,5 @@ def start(data):
 
 
 if __name__ == '__main__':
-    verification_data = get_verification('ethereum', 'c14')
+    verification_data = get_verification('', '')
     start(verification_data)
