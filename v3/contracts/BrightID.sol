@@ -1,6 +1,17 @@
 pragma solidity ^0.5.0;
 
-contract BrightID {
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/ERC721Metadata.sol";
+import "@openzeppelin/contracts/drafts/Counters.sol";
+import "./ERC1238.sol";
+
+contract BrightID is ERC721, ERC721Metadata, ERC1238 {
+
+    using Counters for Counters.Counter;
+    Counters.Counter private _tokenIds;
+
+    bool internal _transfersEnabled = false;
+
     uint256 public id;
 
     struct Context {
@@ -24,6 +35,7 @@ contract BrightID {
     string private constant ALREADY_EXISTS = "Already exists";
     string private constant BAD_SIGNATURE = "Bad signature";
     string private constant NO_CONTEXT_ID = "No context id";
+    string private constant NONTRANSFERRABLE = "Non-transferrable token";
 
     /// Events
     event ContextAdded(bytes32 indexed context, address indexed owner);
@@ -32,6 +44,7 @@ contract BrightID {
     event AddressLinked(bytes32 context, bytes32 contextId, address ethAddress);
 
     constructor()
+        ERC721Metadata("BrightID Verification Badge", "BRIGHTID")
         public
     {
         id = 0;
@@ -95,6 +108,7 @@ contract BrightID {
         bytes32 r,
         bytes32 s)
         public
+        returns (uint256)
     {
         require(isContext(context), CONTEXT_NOT_FOUND);
         require(0 < cIds.length, NO_CONTEXT_ID);
@@ -118,6 +132,11 @@ contract BrightID {
         contexts[context].accounts[uid].push(msg.sender);
 
         emit AddressLinked(context, cIds[0], msg.sender);
+
+        _tokenIds.increment();
+        uint256 newTokenId = _tokenIds.current();
+        _mint(msg.sender, newTokenId);
+        return newTokenId;
     }
 
     /**
@@ -195,4 +214,9 @@ contract BrightID {
         require(contexts[context].owner == msg.sender, ONLY_CONTEXT_OWNER);
         _;
     }
+
+    function _transferFrom(address /* from */, address /* to */, uint256 /* tokenId */) internal {
+        require(_transfersEnabled, NONTRANSFERRABLE);
+    }
+
 }
