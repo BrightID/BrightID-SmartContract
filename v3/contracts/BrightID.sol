@@ -1,11 +1,10 @@
 pragma solidity ^0.5.0;
 
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/token/ERC721/ERC721Metadata.sol";
+import "@openzeppelin/contracts/token/ERC721/ERC721Full.sol";
 import "@openzeppelin/contracts/drafts/Counters.sol";
 import "./ERC1238.sol";
 
-contract BrightID is ERC721, ERC721Metadata, ERC1238 {
+contract BrightID is ERC721Full, ERC1238 {
 
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
@@ -44,7 +43,7 @@ contract BrightID is ERC721, ERC721Metadata, ERC1238 {
     event AddressLinked(bytes32 context, bytes32 contextId, address ethAddress);
 
     constructor()
-        ERC721Metadata("BrightID Verification Badge", "BRIGHTID")
+        ERC721Full("BrightID Verification Badge", "BRIGHTID")
         public
     {
         id = 0;
