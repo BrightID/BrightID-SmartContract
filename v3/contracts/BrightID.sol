@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.6.3;
 
 contract BrightID {
     uint256 public id;
@@ -38,8 +38,9 @@ contract BrightID {
     }
 
     /**
-     * @notice Check whether the context name exists.
+     * @notice Check whether the context has been added to the smart contract using `addContext`.
      * @param context The context.
+     * @return has the context been added?
      */
     function isContext(bytes32 context)
         public
@@ -53,6 +54,7 @@ contract BrightID {
      * @notice Check whether `nodeAddress`'s signature is acceptable for the context.
      * @param context The context.
      * @param nodeAddress The node's address.
+     * @return can `nodeAddress` sign requests for this context?
      */
     function isNodeInContext(bytes32 context, address nodeAddress)
         public
@@ -63,7 +65,7 @@ contract BrightID {
     }
 
     /**
-     * @notice get uid.
+     * @dev get uid.
      * @param context The context.
      * @param cIds an array of contextIds.
      */
@@ -121,9 +123,12 @@ contract BrightID {
     }
 
     /**
-     * @notice Check `ethAddress` is unique human.
+     * @notice Check that `ethAddress` is the mostly recently used address by a unique human in the context.
+     * Also return any addresses previously used by this unique human.
      * @param ethAddress an Ethereum address.
      * @param context the context.
+     * @return is `ethAddress` the most recently used address by a unique human in the `context`.
+     * @return addresses previously used by this unique human.
      */
     function isUniqueHuman(
         address ethAddress,
