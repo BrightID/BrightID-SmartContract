@@ -10,6 +10,7 @@ contract BrightID {
         mapping(uint256 => address[]) accounts;
         mapping(bytes32 => uint256) cIdToUid;
         mapping(address => uint256) ethToUid;
+        mapping(bytes32 => bool) sponsored;
     }
 
     mapping(bytes32 => Context) private contexts;
@@ -24,12 +25,15 @@ contract BrightID {
     string private constant ALREADY_EXISTS = "Already exists";
     string private constant BAD_SIGNATURE = "Bad signature";
     string private constant NO_CONTEXT_ID = "No context id";
+    string private constant UNREGISTERED_CONTEXT_ID = "Unregistered context id";
+    string private constant SPONSORED_BEFORE = "Sponsored before";
 
     /// Events
     event ContextAdded(bytes32 indexed context, address indexed owner);
     event NodeToContextAdded(bytes32 indexed context, address nodeAddress);
     event NodeFromContextRemoved(bytes32 indexed context, address nodeAddress);
     event AddressLinked(bytes32 context, bytes32 contextId, address ethAddress);
+    event Sponsored(bytes32 indexed context, bytes32 indexed contextid);
 
     constructor()
         public
@@ -112,6 +116,7 @@ contract BrightID {
 
         for(uint256 i=0; i < cIds.length-1; i++) {
             contexts[context].cIdToUid[cIds[i]] = uid;
+            contexts[context].sponsored[cIds[i]] = true;
         }
 
         // The last member of contexts[context].accounts[uid] is active address of the user
@@ -139,6 +144,36 @@ contract BrightID {
                 return(true, contexts[context].accounts[uid]);
             }
         }
+    }
+
+    /**
+     * @notice Sponsor `contextid`.
+     * @param context The context.
+     * @param contextid The contextid.
+     */
+    function sponsor(bytes32 context, bytes32 contextid)
+        public
+        onlyContextOwner(context)
+    {
+        require(!contexts[context].sponsored[contextid], SPONSORED_BEFORE);
+
+        contexts[context].sponsored[contextid] = true;
+        emit Sponsored(context, contextid);
+    }
+
+    /**
+     * @notice Check `contextid` is sponsored.
+     * @param context The context.
+     * @param contextid The contextid.
+     */
+    function isSponsored(bytes32 context, bytes32 contextid)
+        public
+        view
+        returns(bool)
+    {
+        require(isContext(context), CONTEXT_NOT_FOUND);
+
+        return contexts[context].sponsored[contextid];
     }
 
     /**
