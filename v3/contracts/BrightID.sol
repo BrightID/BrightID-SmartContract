@@ -170,6 +170,7 @@ contract BrightID {
      * @notice Check `contextid` is sponsored.
      * @param context The context.
      * @param contextid The contextid.
+     * @return true if `contextid` is sponsored under `context`.
      */
     function isSponsored(bytes32 context, bytes32 contextid)
         public
