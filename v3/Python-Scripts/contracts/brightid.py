@@ -43,8 +43,9 @@ def isUniqueHuman(ethAddress, context):
     return resp
 
 
-def sponsor(context, contextid, private_key):
-    func = utils.contracts['brightid'].functions.sponsor(context, contextid)
+def submitSponsorRequest(context, contextid, private_key):
+    func = utils.contracts['brightid'].functions.submitSponsorRequest(
+        context, contextid)
     resp = utils.send_transaction(func, 0, private_key)
     return resp
 
