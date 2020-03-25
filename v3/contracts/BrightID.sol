@@ -11,7 +11,6 @@ contract BrightID {
 
     struct Context {
         bool isActive;
-        address owner;
         mapping(address => bool) owners;
         mapping(address => bool) nodes;
         mapping(uint256 => address[]) accounts;
