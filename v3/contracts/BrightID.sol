@@ -26,7 +26,6 @@ contract BrightID {
     string private constant BAD_SIGNATURE = "Bad signature";
     string private constant NO_CONTEXT_ID = "No context id";
     string private constant UNREGISTERED_CONTEXT_ID = "Unregistered context id";
-    string private constant SPONSORED_BEFORE = "Sponsored before";
 
     /// Events
     event ContextAdded(bytes32 indexed context, address indexed owner);
@@ -160,8 +159,6 @@ contract BrightID {
         public
         onlyContextOwner(context)
     {
-        require(!contexts[context].sponsored[contextid], SPONSORED_BEFORE);
-
         contexts[context].sponsored[contextid] = true;
         emit Sponsored(context, contextid);
     }
