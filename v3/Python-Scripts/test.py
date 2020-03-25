@@ -7,6 +7,12 @@ node_address = utils.priv2addr(config.private_key_1)
 account2 = utils.priv2addr(config.private_key_2)
 account3 = utils.priv2addr(config.private_key_3)
 
+sponsorship_status = {
+    0: 'Sponsored',
+    1: 'Requested',
+    2: 'No Data'
+}
+
 
 def get_verification(context, contextId):
     verification_url = '{0}/brightid4/verifications/{1}/{2}?signed=eth'.format(
@@ -16,12 +22,24 @@ def get_verification(context, contextId):
     return resp['data']
 
 
-def start(data):
+def submit_sponsor_request(context, contextId):
+    print(
+        '\n***** Sponsore {0} in the {1} *****'.format(contextId, context))
+    tx = brightid.submitSponsorRequest(
+        context, contextId, config.private_key_2)
+    print(tx)
+    res = brightid.isSponsored(context, contextId)
+    print('checking:', sponsorship_status[res])
+
+
+def start(data, spContextId):
     context = bytes(data['context'], 'ascii')
     contextIds = [bytes(cId, 'ascii') for cId in data['contextIds']]
+    spContextId = bytes(spContextId, 'ascii')
     r = '0x' + data['sig']['r']
     s = '0x' + data['sig']['s']
     v = data['sig']['v']
+
     print('\n***** Add {0} as Context *****'.format(context))
     tx = brightid.addContext(context, config.private_key_2)
     print(tx)
@@ -40,15 +58,10 @@ def start(data):
     res = brightid.isUniqueHuman(account2, context)
     print('checking:', res)
 
-    newContextId = b'newContextId'
-    print(
-        '\n***** Sponsore {0} in the {1} *****'.format(newContextId, context))
-    tx = brightid.sponsor(context, newContextId, config.private_key_2)
-    print(tx)
-    res = brightid.isSponsored(context, newContextId)
-    print('checking:', res)
+    submit_sponsor_request(context, spContextId)
 
 
 if __name__ == '__main__':
     verification_data = get_verification('', '')
-    start(verification_data)
+
+    start(verification_data, '')

@@ -3,6 +3,12 @@ pragma solidity ^0.6.3;
 contract BrightID {
     uint256 public id;
 
+    enum SponsorshipStatus {
+        Sponsored,
+        Requested,
+        NoData
+    }
+
     struct Context {
         bool isActive;
         address owner;
@@ -10,7 +16,7 @@ contract BrightID {
         mapping(uint256 => address[]) accounts;
         mapping(bytes32 => uint256) cIdToUid;
         mapping(address => uint256) ethToUid;
-        mapping(bytes32 => bool) sponsored;
+        mapping(bytes32 => bool) sponsorRequests;
     }
 
     mapping(bytes32 => Context) private contexts;
@@ -25,14 +31,13 @@ contract BrightID {
     string private constant ALREADY_EXISTS = "Already exists";
     string private constant BAD_SIGNATURE = "Bad signature";
     string private constant NO_CONTEXT_ID = "No context id";
-    string private constant UNREGISTERED_CONTEXT_ID = "Unregistered context id";
 
     /// Events
     event ContextAdded(bytes32 indexed context, address indexed owner);
     event NodeToContextAdded(bytes32 indexed context, address nodeAddress);
     event NodeFromContextRemoved(bytes32 indexed context, address nodeAddress);
     event AddressLinked(bytes32 context, bytes32 contextId, address ethAddress);
-    event Sponsored(bytes32 indexed context, bytes32 indexed contextid);
+    event SponsorRequested(bytes32 indexed context, bytes32 indexed contextid);
 
     constructor()
         public
@@ -117,7 +122,6 @@ contract BrightID {
 
         for(uint256 i=0; i < cIds.length-1; i++) {
             contexts[context].cIdToUid[cIds[i]] = uid;
-            contexts[context].sponsored[cIds[i]] = true;
         }
 
         // The last member of contexts[context].accounts[uid] is active address of the user
@@ -151,16 +155,16 @@ contract BrightID {
     }
 
     /**
-     * @notice Sponsor `contextid`.
+     * @notice Submit a request for sponsor `contextid` under `context`.
      * @param context The context.
      * @param contextid The contextid.
      */
-    function sponsor(bytes32 context, bytes32 contextid)
+    function submitSponsorRequest(bytes32 context, bytes32 contextid)
         public
         onlyContextOwner(context)
     {
-        contexts[context].sponsored[contextid] = true;
-        emit Sponsored(context, contextid);
+        contexts[context].sponsorRequests[contextid] = true;
+        emit SponsorRequested(context, contextid);
     }
 
     /**
@@ -172,11 +176,20 @@ contract BrightID {
     function isSponsored(bytes32 context, bytes32 contextid)
         public
         view
-        returns(bool)
+        returns(SponsorshipStatus)
     {
         require(isContext(context), CONTEXT_NOT_FOUND);
 
-        return contexts[context].sponsored[contextid];
+        uint256 uid = contexts[context].cIdToUid[contextid];
+        if (uid != 0){
+            return SponsorshipStatus.Sponsored;
+        }
+
+        if (contexts[context].sponsorRequests[contextid]){
+            return SponsorshipStatus.Requested;
+        }
+
+        return SponsorshipStatus.NoData;
     }
 
     /**
