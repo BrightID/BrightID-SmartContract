@@ -32,7 +32,7 @@ def submit_sponsor_request(context, contextId):
     print('checking:', sponsorship_status[res])
 
 
-def start(data, spContextId):
+def start(data, spContextId, newContextOwner):
     context = bytes(data['context'], 'ascii')
     contextIds = [bytes(cId, 'ascii') for cId in data['contextIds']]
     spContextId = bytes(spContextId, 'ascii')
@@ -45,6 +45,22 @@ def start(data, spContextId):
     print(tx)
     res = brightid.isContext(context)
     print('checking:', res)
+
+    print(
+        '\n***** Add {0} as owner of {1} *****'.format(newContextOwner, context))
+    tx = brightid.addContextOwner(
+        context, newContextOwner, config.private_key_2)
+    print(tx)
+    res = brightid.isContextOwner(context, newContextOwner)
+    print('checking:', res)
+
+    print(
+        '\n***** Remove {0} from owners of {1}*****'.format(newContextOwner, context))
+    tx = brightid.removeContextOwner(
+        context, newContextOwner, config.private_key_2)
+    print(tx)
+    res = brightid.isContextOwner(context, newContextOwner)
+    print('checking:', not res)
 
     print('\n***** Add {0} as node to {1} *****'.format(node_address, context))
     tx = brightid.addNodeToContext(context, node_address, config.private_key_2)
@@ -64,4 +80,4 @@ def start(data, spContextId):
 if __name__ == '__main__':
     verification_data = get_verification('', '')
 
-    start(verification_data, '')
+    start(verification_data, '', account3)

@@ -12,6 +12,7 @@ contract BrightID {
     struct Context {
         bool isActive;
         address owner;
+        mapping(address => bool) owners;
         mapping(address => bool) nodes;
         mapping(uint256 => address[]) accounts;
         mapping(bytes32 => uint256) cIdToUid;
@@ -34,6 +35,8 @@ contract BrightID {
 
     /// Events
     event ContextAdded(bytes32 indexed context, address indexed owner);
+    event ContextOwnerAdded(bytes32 indexed context, address owner);
+    event ContextOwnerRemoved(bytes32 indexed context, address owner);
     event NodeToContextAdded(bytes32 indexed context, address nodeAddress);
     event NodeFromContextRemoved(bytes32 indexed context, address nodeAddress);
     event AddressLinked(bytes32 context, bytes32 contextId, address ethAddress);
@@ -202,8 +205,48 @@ contract BrightID {
         require(contexts[context].isActive != true, ALREADY_EXISTS);
 
         contexts[context].isActive = true;
-        contexts[context].owner = msg.sender;
+        contexts[context].owners[msg.sender] = true;
         emit ContextAdded(context, msg.sender);
+    }
+
+    /**
+     * @notice Add a context owner.
+     * @param context The context.
+     * @param owner The new context's owner.
+     */
+    function addContextOwner(bytes32 context, address owner)
+        public
+        onlyContextOwner(context)
+    {
+        contexts[context].owners[owner] = true;
+        emit ContextOwnerAdded(context, owner);
+    }
+
+    /**
+     * @notice Remove a context owner.
+     * @param context The context.
+     * @param owner The context's owner which should remove.
+     */
+    function removeContextOwner(bytes32 context, address owner)
+        public
+        onlyContextOwner(context)
+    {
+        contexts[context].owners[owner] = false;
+        emit ContextOwnerRemoved(context, owner);
+    }
+
+
+    /**
+     * @notice Check `owner` is owner of `context`.
+     * @param context The context.
+     * @param owner The new context's owner.
+     */
+    function isContextOwner(bytes32 context, address owner)
+        public
+        view
+        returns(bool)
+    {
+        return contexts[context].owners[owner];
     }
 
     /**
@@ -243,7 +286,7 @@ contract BrightID {
      * @param context The context.
      */
     modifier onlyContextOwner(bytes32 context) {
-        require(contexts[context].owner == msg.sender, ONLY_CONTEXT_OWNER);
+        require(contexts[context].owners[msg.sender], ONLY_CONTEXT_OWNER);
         _;
     }
 }

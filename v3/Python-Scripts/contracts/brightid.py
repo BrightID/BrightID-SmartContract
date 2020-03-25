@@ -55,3 +55,23 @@ def isSponsored(context, contextid):
         context, contextid)
     resp = utils.send_eth_call(func)
     return resp
+
+
+def addContextOwner(context, owner, private_key):
+    func = utils.contracts['brightid'].functions.addContextOwner(
+        context, owner)
+    tx_hash = utils.send_transaction(func, 0, private_key)
+    return tx_hash
+
+
+def removeContextOwner(context, owner, private_key):
+    func = utils.contracts['brightid'].functions.removeContextOwner(
+        context, owner)
+    tx_hash = utils.send_transaction(func, 0, private_key)
+    return tx_hash
+
+
+def isContextOwner(context, owner):
+    func = utils.contracts['brightid'].functions.isContextOwner(context, owner)
+    tx_hash = utils.send_eth_call(func)
+    return tx_hash
