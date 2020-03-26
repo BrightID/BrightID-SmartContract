@@ -32,7 +32,7 @@ def submit_sponsor_request(context, contextId):
     print('checking:', sponsorship_status[res])
 
 
-def start(data, spContextId, newContextOwner):
+def start(data, spContextId):
     context = bytes(data['context'], 'ascii')
     contextIds = [bytes(cId, 'ascii') for cId in data['contextIds']]
     spContextId = bytes(spContextId, 'ascii')
@@ -47,26 +47,25 @@ def start(data, spContextId, newContextOwner):
     print('checking:', res)
 
     print(
-        '\n***** Add {0} as owner of {1} *****'.format(newContextOwner, context))
-    tx = brightid.addContextOwner(
-        context, newContextOwner, config.private_key_2)
+        '\n***** Add {0} as owner of {1} *****'.format(account3, context))
+    tx = brightid.addContextOwner(context, account3, config.private_key_2)
     print(tx)
-    res = brightid.isContextOwner(context, newContextOwner)
+    res = brightid.isContextOwner(context, account3)
     print('checking:', res)
 
-    print(
-        '\n***** Remove {0} from owners of {1}*****'.format(newContextOwner, context))
-    tx = brightid.removeContextOwner(
-        context, newContextOwner, config.private_key_2)
-    print(tx)
-    res = brightid.isContextOwner(context, newContextOwner)
-    print('checking:', not res)
-
     print('\n***** Add {0} as node to {1} *****'.format(node_address, context))
-    tx = brightid.addNodeToContext(context, node_address, config.private_key_2)
+    tx = brightid.addNodeToContext(context, node_address, config.private_key_3)
     print(tx)
     res = brightid.isNodeInContext(context, node_address)
     print('checking:', res)
+
+    print(
+        '\n***** Remove {0} from owners of {1}*****'.format(account3, context))
+    tx = brightid.removeContextOwner(
+        context, account3, config.private_key_2)
+    print(tx)
+    res = brightid.isContextOwner(context, account3)
+    print('checking:', not res)
 
     print('\n***** Register {0} in the {1} *****'.format(account2, context))
     tx = brightid.register(context, contextIds, v, r, s, config.private_key_2)
@@ -80,4 +79,4 @@ def start(data, spContextId, newContextOwner):
 if __name__ == '__main__':
     verification_data = get_verification('', '')
 
-    start(verification_data, '', account3)
+    start(verification_data, '')
