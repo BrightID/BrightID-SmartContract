@@ -50,13 +50,6 @@ def submitSponsorRequest(context, contextid, private_key):
     return resp
 
 
-def isSponsored(context, contextid):
-    func = utils.contracts['brightid'].functions.isSponsored(
-        context, contextid)
-    resp = utils.send_eth_call(func)
-    return resp
-
-
 def addContextOwner(context, owner, private_key):
     func = utils.contracts['brightid'].functions.addContextOwner(
         context, owner)

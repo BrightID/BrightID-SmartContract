@@ -3,12 +3,6 @@ pragma solidity ^0.6.3;
 contract BrightID {
     uint256 public id;
 
-    enum SponsorshipStatus {
-        Sponsored,
-        Requested,
-        NoData
-    }
-
     struct Context {
         bool isActive;
         mapping(address => bool) owners;
@@ -16,14 +10,12 @@ contract BrightID {
         mapping(uint256 => address[]) accounts;
         mapping(bytes32 => uint256) cIdToUid;
         mapping(address => uint256) ethToUid;
-        mapping(bytes32 => bool) sponsorRequests;
     }
 
     mapping(bytes32 => Context) private contexts;
 
     string private constant DUPLICATE_ETHEREUM_ADDRESS = "Duplicate ethereum address";
     string private constant DUPLICATE_CONTEXT_ID = "Duplicate context id";
-    string private constant INVALID_ADDRESS = "Invalid ethereum address";
     string private constant ONLY_CONTEXT_OWNER = "Only context owner";
     string private constant UNAUTHORIZED_NODE = "Unauthorized node";
     string private constant CONTEXT_NOT_FOUND = "Context not found";
@@ -165,33 +157,7 @@ contract BrightID {
         public
         onlyContextOwner(context)
     {
-        contexts[context].sponsorRequests[contextid] = true;
         emit SponsorRequested(context, contextid);
-    }
-
-    /**
-     * @notice Check `contextid` is sponsored.
-     * @param context The context.
-     * @param contextid The contextid.
-     * @return true if `contextid` is sponsored under `context`.
-     */
-    function isSponsored(bytes32 context, bytes32 contextid)
-        public
-        view
-        returns(SponsorshipStatus)
-    {
-        require(isContext(context), CONTEXT_NOT_FOUND);
-
-        uint256 uid = contexts[context].cIdToUid[contextid];
-        if (uid != 0){
-            return SponsorshipStatus.Sponsored;
-        }
-
-        if (contexts[context].sponsorRequests[contextid]){
-            return SponsorshipStatus.Requested;
-        }
-
-        return SponsorshipStatus.NoData;
     }
 
     /**

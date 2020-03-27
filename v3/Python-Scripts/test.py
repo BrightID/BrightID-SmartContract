@@ -28,8 +28,6 @@ def submit_sponsor_request(context, contextId):
     tx = brightid.submitSponsorRequest(
         context, contextId, config.private_key_2)
     print(tx)
-    res = brightid.isSponsored(context, contextId)
-    print('checking:', sponsorship_status[res])
 
 
 def start(data, spContextId):
