@@ -202,7 +202,7 @@ contract BrightID {
 
 
     /**
-     * @notice Check `owner` is owner of `context`.
+     * @notice Check that `owner` is a owner of `context`.
      * @param context The context.
      * @param owner The new context's owner.
      */
