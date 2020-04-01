@@ -28,10 +28,10 @@ contract BrightID {
     event ContextAdded(bytes32 indexed context, address indexed owner);
     event ContextOwnerAdded(bytes32 indexed context, address owner);
     event ContextOwnerRemoved(bytes32 indexed context, address owner);
-    event NodeToContextAdded(bytes32 indexed context, address nodeAddress);
-    event NodeFromContextRemoved(bytes32 indexed context, address nodeAddress);
+    event NodeAddedToContext(bytes32 indexed context, address nodeAddress);
+    event NodeRemovedFromContext(bytes32 indexed context, address nodeAddress);
     event AddressLinked(bytes32 context, bytes32 contextId, address ethAddress);
-    event SponsorRequested(bytes32 indexed context, bytes32 indexed contextid);
+    event SponsorshipRequested(bytes32 indexed context, bytes32 indexed contextid);
 
     constructor()
         public
@@ -149,15 +149,15 @@ contract BrightID {
     }
 
     /**
-     * @notice Submit a request for sponsor `contextid` under `context`.
+     * @notice Submit a request to sponsor `contextid` under `context`.
      * @param context The context.
      * @param contextid The contextid.
      */
-    function submitSponsorRequest(bytes32 context, bytes32 contextid)
+    function sponsor(bytes32 context, bytes32 contextid)
         public
         onlyContextOwner(context)
     {
-        emit SponsorRequested(context, contextid);
+        emit SponsorshipRequested(context, contextid);
     }
 
     /**
@@ -177,7 +177,7 @@ contract BrightID {
     /**
      * @notice Add a context owner.
      * @param context The context.
-     * @param owner The new context's owner.
+     * @param owner The address of the context owner to be added.
      */
     function addContextOwner(bytes32 context, address owner)
         public
@@ -190,7 +190,7 @@ contract BrightID {
     /**
      * @notice Remove a context owner.
      * @param context The context.
-     * @param owner The context's owner which should remove.
+     * @param owner The address of the context owner to be removed.
      */
     function removeContextOwner(bytes32 context, address owner)
         public
@@ -227,7 +227,7 @@ contract BrightID {
         require(contexts[context].nodes[nodeAddress] != true, ALREADY_EXISTS);
 
         contexts[context].nodes[nodeAddress] = true;
-        emit NodeToContextAdded(context, nodeAddress);
+        emit NodeAddedToContext(context, nodeAddress);
     }
 
     /**
@@ -243,7 +243,7 @@ contract BrightID {
         require(contexts[context].nodes[nodeAddress] == true, NODE_NOT_FOUND);
 
         contexts[context].nodes[nodeAddress] = false;
-        emit NodeFromContextRemoved(context, nodeAddress);
+        emit NodeRemovedFromContext(context, nodeAddress);
     }
 
     /**
