@@ -27,7 +27,9 @@ pkg-resources==0.0.0
 protobuf==3.10.0
 pycryptodome==3.9.4
 pyrsistent==0.15.5
+python-arango==5.4.0
 requests==2.22.0
+requests-toolbelt==0.9.1
 rlp==1.1.0
 six==1.13.0
 toolz==0.10.0
