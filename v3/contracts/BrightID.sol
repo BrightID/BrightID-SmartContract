@@ -75,7 +75,7 @@ contract BrightID {
         internal
         returns(uint256)
     {
-        for(uint256 i=1; i < cIds.length-1; i++) {
+        for(uint256 i=1; i < cIds.length; i++) {
             uint256 uid = contexts[context].cIdToUid[cIds[i]];
             if (uid != 0) {
                 return uid;
@@ -114,7 +114,7 @@ contract BrightID {
 
         contexts[context].ethToUid[msg.sender] = uid;
 
-        for(uint256 i=0; i < cIds.length-1; i++) {
+        for(uint256 i=0; i < cIds.length; i++) {
             contexts[context].cIdToUid[cIds[i]] = uid;
         }
 
