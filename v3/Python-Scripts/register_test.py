@@ -166,8 +166,11 @@ class TestUpdate(unittest.TestCase):
 
         v = self.get_verification(self.CONTEXT, self.CONTEXT_ID)
         bcontext = bytes(v['context'], 'ascii')
-        bcontextIds = [bytes.fromhex(
-            cId[2:]) + 12 * b'\x00' for cId in v['contextIds']]
+        if self.idsAsHex:
+            bcontextIds = [bytes.fromhex(
+                cId[2:]) + 12 * b'\x00' for cId in v['contextIds']]
+        else:
+            bcontextIds = [bytes(cId, 'ascii') for cId in v['contextIds']]
         r = '0x' + v['sig']['r']
         s = '0x' + v['sig']['s']
         v = v['sig']['v']
@@ -176,6 +179,7 @@ class TestUpdate(unittest.TestCase):
 
         r = self.isUniqueHuman(self.priv2addr(
             self.PRIVATE_KEY), self.str2bytes32(self.CONTEXT))
+        print('result:', r)
 
         self.assertTrue(r[0])
         self.assertIn(self.priv2addr(self.PRIVATE_KEY), r[1])
