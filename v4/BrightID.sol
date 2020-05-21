@@ -21,24 +21,22 @@ contract BrightID is Ownable {
 
     function verify(
         bytes32 context,
-        address addr,
-        address[] memory revokeds,
+        address[] addrs,
         uint8 v,
         bytes32 r,
         bytes32 s
     ) public {
-        require(!isRevoked[addr], "address was revoked");
-        bytes32 message = keccak256(abi.encodePacked(context, addr, revokeds));
+        require(!isRevoked[addrs[0]], "address was revoked");
+        bytes32 message = keccak256(abi.encodePacked(context, addrs));
         address signer = ecrecover(message, v, r, s);
         require(verifierToken.balanceOf(signer) > 0, "not authorized");
 
-        verifications[addr] = block.number;
-        emit Verified(addr);
-        for(uint i = 0; i < revokeds.length; i++) {
-            verifications[revokeds[i]] = 0;
-            isRevoked[revokeds[i]] = true;
-            history[addr] = revokeds[i];
-            addr = revokeds[i];
+        verifications[addrs[0]] = block.number;
+        for(uint i = 1; i < addrs.length; i++) {
+            verifications[addrs[i]] = 0;
+            isRevoked[addrs[i]] = true;
+            history[addrs[i - 1]] = addrs[i];
         }
+        emit Verified(addrs[0]);
     }
 }
