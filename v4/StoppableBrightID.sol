@@ -21,6 +21,7 @@ contract StoppableBrightID is Ownable {
 
     mapping(bytes32 => uint) public proposals;
     mapping(address => uint) public verifications;
+    mapping(address => bool) public isRevoked;
     mapping(address => address) public history;
 
     function setMembershipTokens(IERC20 _supervisorToken, IERC20 _proposerToken) public onlyOwner {
@@ -54,6 +55,7 @@ contract StoppableBrightID is Ownable {
         bytes32 s
     ) public {
         require(!stopped, "contract is stopped");
+        require(!isRevoked[addr], "address was revoked");
         bytes32 message = keccak256(abi.encodePacked(addr, revokeds));
         address signer = ecrecover(message, v, r, s);
         require(proposerToken.balanceOf(signer) > 0, "not authorized");
@@ -63,6 +65,7 @@ contract StoppableBrightID is Ownable {
 
     function verify(address addr, address[] memory revokeds) public {
         require(!stopped, "contract is stopped");
+        require(!isRevoked[addr], "address was revoked");
         bytes32 message = keccak256(abi.encodePacked(addr, revokeds));
         uint pblock = proposals[message];
         require(pblock > 0, "not proposed");
@@ -73,6 +76,7 @@ contract StoppableBrightID is Ownable {
         emit Verified(addr);
         for(uint i = 0; i < revokeds.length; i++) {
             verifications[revokeds[i]] = 0;
+            isRevoked[revokeds[i]] = true;
             history[addr] = revokeds[i];
             addr = revokeds[i];
         }

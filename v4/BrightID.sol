@@ -12,6 +12,7 @@ contract BrightID is Ownable {
 
     mapping(address => uint) public verifications;
     mapping(address => address) public history;
+    mapping(address => bool) public isRevoked;
 
     function setVerifierToken(IERC20 _verifierToken) public onlyOwner {
         verifierToken = _verifierToken;
@@ -25,6 +26,7 @@ contract BrightID is Ownable {
         bytes32 r,
         bytes32 s
     ) public {
+        require(!isRevoked[addr], "address was revoked");
         bytes32 message = keccak256(abi.encodePacked(addr, revokeds));
         address signer = ecrecover(message, v, r, s);
         require(verifierToken.balanceOf(signer) > 0, "not authorized");
@@ -33,6 +35,7 @@ contract BrightID is Ownable {
         emit Verified(addr);
         for(uint i = 0; i < revokeds.length; i++) {
             verifications[revokeds[i]] = 0;
+            isRevoked[revokeds[i]] = true;
             history[addr] = revokeds[i];
             addr = revokeds[i];
         }
