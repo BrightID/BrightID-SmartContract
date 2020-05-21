@@ -48,6 +48,7 @@ contract StoppableBrightID is Ownable {
     }
 
     function propose(
+        bytes32 context,
         address addr,
         address[] memory revokeds,
         uint8 v,
@@ -56,17 +57,21 @@ contract StoppableBrightID is Ownable {
     ) public {
         require(!stopped, "contract is stopped");
         require(!isRevoked[addr], "address was revoked");
-        bytes32 message = keccak256(abi.encodePacked(addr, revokeds));
+        bytes32 message = keccak256(abi.encodePacked(context, addr, revokeds));
         address signer = ecrecover(message, v, r, s);
         require(proposerToken.balanceOf(signer) > 0, "not authorized");
         proposals[message] = block.number;
         emit Proposed(addr);
     }
 
-    function verify(address addr, address[] memory revokeds) public {
+    function verify(
+        bytes32 context,
+        address addr,
+        address[] memory revokeds
+    ) public {
         require(!stopped, "contract is stopped");
         require(!isRevoked[addr], "address was revoked");
-        bytes32 message = keccak256(abi.encodePacked(addr, revokeds));
+        bytes32 message = keccak256(abi.encodePacked(context, addr, revokeds));
         uint pblock = proposals[message];
         require(pblock > 0, "not proposed");
         require(block.number - pblock > waiting, "proposal is waiting");

@@ -20,6 +20,7 @@ contract BrightID is Ownable {
     }
 
     function verify(
+        bytes32 context,
         address addr,
         address[] memory revokeds,
         uint8 v,
@@ -27,7 +28,7 @@ contract BrightID is Ownable {
         bytes32 s
     ) public {
         require(!isRevoked[addr], "address was revoked");
-        bytes32 message = keccak256(abi.encodePacked(addr, revokeds));
+        bytes32 message = keccak256(abi.encodePacked(context, addr, revokeds));
         address signer = ecrecover(message, v, r, s);
         require(verifierToken.balanceOf(signer) > 0, "not authorized");
 
