@@ -1,87 +1,40 @@
 pragma solidity ^0.6.3;
 
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/access/Ownable.sol";
-
-contract MembershipToken {
-    function balanceOf(address account) public returns (uint256) {}
-}
+import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/IERC20.sol";
 
 contract BrightID is Ownable {
 
-    MembershipToken public supervisorToken;
-    MembershipToken public proposerToken;
+    IERC20 public verifierToken;
 
-    event Verified(address indexed addr, address indexed revoked);
-    event Proposed(address indexed addr, address indexed revoked);
-    event Started();
-    event Stopped(address stopper);
-    event AppliedCounterSet(uint counter);
-    event TimingSet(uint waiting, uint timeout);
-    event MembershipTokensSet(address supervisorToken, address proposerToken);
+    event Verified(address indexed addr);
+    event VerifierTokenSet(IERC20 verifierToken);
 
-    struct Proposal {
-        address addr;
-        address revoked;
-        uint block;
-    }
-    uint public proposedCounter = 0;
-    uint public appliedCounter = 0;
-    mapping(uint => Proposal) public proposals;
-
-    bool public stopped = false;
-    uint public waiting = 10;
-    uint public timeout = 120;
     mapping(address => uint) public verifications;
     mapping(address => address) public history;
 
-    function setMembershipTokens(address _supervisorToken, address _proposerToken) public onlyOwner {
-        supervisorToken = MembershipToken(_supervisorToken);
-        proposerToken = MembershipToken(_proposerToken);
-        MembershipTokensSet(_supervisorToken, _proposerToken);
+    function setVerifierToken(IERC20 _verifierToken) public onlyOwner {
+        verifierToken = _verifierToken;
+        VerifierTokenSet(_verifierToken);
     }
 
-    function setTiming(uint _waiting, uint _timeout) public onlyOwner {
-        waiting = _waiting;
-        timeout = _timeout;
-        TimingSet(_waiting, _timeout);
-    }
+    function verify(
+        address addr,
+        address[] memory revokeds,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) public {
+        bytes32 message = keccak256(abi.encodePacked(addr, revokeds));
+        address signer = ecrecover(message, v, r, s);
+        require(verifierToken.balanceOf(signer) > 0, "not authorized");
 
-    function setAppliedCounter(uint _appliedCounter) public onlyOwner {
-        appliedCounter = _appliedCounter;
-        AppliedCounterSet(_appliedCounter);
-    }
-
-    function stop() public {
-        require(supervisorToken.balanceOf(msg.sender) > 0, "not authorized");
-        stopped = true;
-        emit Stopped(msg.sender);
-    }
-
-    function start() public onlyOwner {
-        stopped = false;
-        emit Started();
-    }
-
-    function proposeVerification(address addr, address revoked) public {
-        require(proposerToken.balanceOf(msg.sender) > 0, "not authorized");
-        proposals[proposedCounter] = Proposal(addr, revoked, block.number);
-        proposedCounter = proposedCounter + 1;
-        emit Proposed(addr, revoked);
-    }
-
-    function applyNext() public {
-        require(!stopped, "contract is in stopped state");
-        Proposal memory p = proposals[appliedCounter];
-        appliedCounter = appliedCounter + 1;
-        require(block.number - p.block > waiting, "proposal is in waiting state");
-        require(block.number - p.block < timeout, "proposal timed out");
-
-        verifications[p.addr] = block.number;
-        if (p.revoked != address(0)) {
-            verifications[p.revoked] = 0;
-            history[p.addr] = p.revoked;
+        verifications[addr] = block.number;
+        emit Verified(addr);
+        for(uint i = 0; i < revokeds.length; i++) {
+            verifications[revokeds[i]] = 0;
+            history[addr] = revokeds[i];
+            addr = revokeds[i];
         }
-        emit Verified(p.addr, p.revoked);
     }
-    
 }
