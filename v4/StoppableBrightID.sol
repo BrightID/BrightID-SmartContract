@@ -9,6 +9,7 @@ contract StoppableBrightID is Ownable {
     IERC20 public proposerToken;
 
     event Verified(address indexed addr);
+    event Sponsor(address indexed addr);
     event Proposed(address indexed addr);
     event Started();
     event Stopped(address stopper);
@@ -82,5 +83,10 @@ contract StoppableBrightID is Ownable {
             history[addrs[i - 1]] = addrs[i];
         }
         emit Verified(addrs[0]);
+    }
+
+    function sponsor(address addr) public {
+        require(proposerToken.balanceOf(msg.sender) > 0, "not authorized");
+        emit Sponsor(addr);
     }
 }

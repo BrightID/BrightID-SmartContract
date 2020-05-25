@@ -8,6 +8,7 @@ contract BrightID is Ownable {
     IERC20 public verifierToken;
 
     event Verified(address indexed addr);
+    event Sponsor(address indexed addr);
     event VerifierTokenSet(IERC20 verifierToken);
 
     mapping(address => uint) public verifications;
@@ -21,7 +22,7 @@ contract BrightID is Ownable {
 
     function verify(
         bytes32 context,
-        address[] addrs,
+        address[] memory addrs,
         uint8 v,
         bytes32 r,
         bytes32 s
@@ -38,5 +39,10 @@ contract BrightID is Ownable {
             history[addrs[i - 1]] = addrs[i];
         }
         emit Verified(addrs[0]);
+    }
+
+    function sponsor(address addr) public {
+        require(verifierToken.balanceOf(msg.sender) > 0, "not authorized");
+        emit Sponsor(addr);
     }
 }
