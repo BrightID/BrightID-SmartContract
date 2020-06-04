@@ -2,8 +2,9 @@ pragma solidity ^0.6.3;
 
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/access/Ownable.sol";
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/IERC20.sol";
+import "https://github.com/BrightID/BrightID-SmartContract/blob/master/v4/IBrightID.sol";
 
-contract StoppableBrightID is Ownable {
+contract StoppableBrightID is Ownable, IBrightID {
 
     IERC20 public supervisorToken;
     IERC20 public proposerToken;
@@ -20,9 +21,9 @@ contract StoppableBrightID is Ownable {
     uint public timeout;
 
     mapping(bytes32 => uint) public proposals;
-    mapping(address => uint) public verifications;
+    mapping(address => uint) override public verifications;
+    mapping(address => address) override public history;
     mapping(address => bool) public isRevoked;
-    mapping(address => address) public history;
 
     function setMembershipTokens(IERC20 _supervisorToken, IERC20 _proposerToken) public onlyOwner {
         supervisorToken = _supervisorToken;

@@ -2,16 +2,17 @@ pragma solidity ^0.6.3;
 
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/access/Ownable.sol";
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/IERC20.sol";
+import "https://github.com/BrightID/BrightID-SmartContract/blob/master/v4/IBrightID.sol";
 
-contract BrightID is Ownable {
+contract BrightID is Ownable, IBrightID {
 
     IERC20 public verifierToken;
 
     event Verified(address indexed addr);
     event VerifierTokenSet(IERC20 verifierToken);
 
-    mapping(address => uint) public verifications;
-    mapping(address => address) public history;
+    mapping(address => uint) override public verifications;
+    mapping(address => address) override public history;
     mapping(address => bool) public isRevoked;
 
     function setVerifierToken(IERC20 _verifierToken) public onlyOwner {
