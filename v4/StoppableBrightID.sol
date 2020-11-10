@@ -20,10 +20,13 @@ contract StoppableBrightID is Ownable, IBrightID {
     uint public waiting;
     uint public timeout;
 
+    struct Verification {
+        uint256 time;
+        bool isVerified;
+    }
+    mapping(address => Verification) override public verifications;
     mapping(bytes32 => uint) public proposals;
-    mapping(address => uint) override public verifications;
     mapping(address => address) override public history;
-    mapping(address => bool) public isRevoked;
 
     function setMembershipTokens(IERC20 _supervisorToken, IERC20 _proposerToken) public onlyOwner {
         supervisorToken = _supervisorToken;
@@ -57,10 +60,11 @@ contract StoppableBrightID is Ownable, IBrightID {
         bytes32 s
     ) public {
         require(!stopped, "contract is stopped");
-        require(!isRevoked[addrs[0]], "address was revoked");
+
         bytes32 message = keccak256(abi.encodePacked(context, addrs, timestamp));
         address signer = ecrecover(message, v, r, s);
         require(proposerToken.balanceOf(signer) > 0, "not authorized");
+
         proposals[message] = block.number;
         emit Proposed(addrs[0]);
     }
@@ -71,18 +75,19 @@ contract StoppableBrightID is Ownable, IBrightID {
         uint timestamp
     ) public {
         require(!stopped, "contract is stopped");
-        require(!isRevoked[addrs[0]], "address was revoked");
-        require(verifications[addrs[0]] < timestamp, "newer verification registered before");
+        require(verifications[addrs[0]].time < timestamp, "newer verification registered before");
+
         bytes32 message = keccak256(abi.encodePacked(context, addrs, timestamp));
         uint pblock = proposals[message];
         require(pblock > 0, "not proposed");
         require(block.number - pblock > waiting, "proposal is waiting");
         require(block.number - pblock < timeout, "proposal timed out");
 
-        verifications[addrs[0]] = timestamp;
+        verifications[addrs[0]].time = timestamp;
+        verifications[addrs[0]].isVerified = true;
         for(uint i = 1; i < addrs.length; i++) {
-            verifications[addrs[i]] = 0;
-            isRevoked[addrs[i]] = true;
+            verifications[addrs[i]].time = timestamp;
+            verifications[addrs[i]].isVerified = false;
             history[addrs[i - 1]] = addrs[i];
         }
         emit Verified(addrs[0]);
