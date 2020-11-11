@@ -5,26 +5,69 @@ import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contr
 import "https://github.com/BrightID/BrightID-SmartContract/blob/master/v4/IBrightID.sol";
 
 contract BrightID is Ownable, IBrightID {
-
     IERC20 public verifierToken;
+    bytes32 public verificationHash;
+    bytes32 public context;
 
     event Verified(address indexed addr);
     event VerifierTokenSet(IERC20 verifierToken);
+    event VerificationHashSet(bytes32 verificationHash);
+    event contextSet(bytes32 _context);
 
     struct Verification {
         uint256 time;
         bool isVerified;
     }
-    mapping(address => Verification) override public verifications;
+    mapping(address => Verification) public verifications;
     mapping(address => address) override public history;
 
-    function setVerifierToken(IERC20 _verifierToken) public onlyOwner {
+    /**
+     * @param _verificationHash sha256 of the acceptable verification expression
+     * @param _verifierToken verifier token
+     * @param _context BrightID context used for verifying users
+     */
+    constructor(bytes32 _verificationHash, IERC20 _verifierToken, bytes32 _context) public {
+        verificationHash = _verificationHash;
         verifierToken = _verifierToken;
-        VerifierTokenSet(_verifierToken);
+        context = _context;
     }
 
+    /**
+     * @notice Set verification hash
+     * @param _context BrightID context used for verifying users
+     */
+    function setContext(bytes32 _context) public onlyOwner {
+        context = _context;
+        emit contextSet(_context);
+    }
+
+    /**
+     * @notice Set verification hash
+     * @param _verificationHash sha256 of the acceptable verification expression
+     */
+    function setVerificationHash(bytes32 _verificationHash) public onlyOwner {
+        verificationHash = _verificationHash;
+        emit VerificationHashSet(_verificationHash);
+    }
+
+    /**
+     * @notice Set verifier token
+     * @param _verifierToken verifier token
+     */
+    function setVerifierToken(IERC20 _verifierToken) public onlyOwner {
+        verifierToken = _verifierToken;
+        emit VerifierTokenSet(_verifierToken);
+    }
+
+    /**
+     * @notice Register a user by BrightID verification
+     * @param addrs The history of addresses used by this user in the context
+     * @param timestamp The BrightID node's verification timestamp
+     * @param v Component of signature
+     * @param r Component of signature
+     * @param s Component of signature
+     */
     function verify(
-        bytes32 context,
         address[] memory addrs,
         uint timestamp,
         uint8 v,
@@ -33,7 +76,7 @@ contract BrightID is Ownable, IBrightID {
     ) public {
         require(verifications[addrs[0]].time < timestamp, "newer verification registered before");
 
-        bytes32 message = keccak256(abi.encodePacked(context, addrs, timestamp));
+        bytes32 message = keccak256(abi.encodePacked(context, addrs, verificationHash, timestamp));
         address signer = ecrecover(message, v, r, s);
         require(verifierToken.balanceOf(signer) > 0, "not authorized");
 
@@ -47,4 +90,11 @@ contract BrightID is Ownable, IBrightID {
         emit Verified(addrs[0]);
     }
 
+    /**
+     * @notice Check a user is verified or not
+     * @param user BrightID context id used for verifying users
+     */
+    function isVerified(address user) override external view returns (bool) {
+        return verifications[user].isVerified;
+    }
 }
