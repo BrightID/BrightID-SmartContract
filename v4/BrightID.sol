@@ -12,7 +12,7 @@ contract BrightID is Ownable, IBrightID {
     event Verified(address indexed addr);
     event VerifierTokenSet(IERC20 verifierToken);
     event VerificationHashSet(bytes32 verificationHash);
-    event contextSet(bytes32 _context);
+    event ContextSet(bytes32 _context);
 
     struct Verification {
         uint256 time;
@@ -38,7 +38,7 @@ contract BrightID is Ownable, IBrightID {
      */
     function setContext(bytes32 _context) public onlyOwner {
         context = _context;
-        emit contextSet(_context);
+        emit ContextSet(_context);
     }
 
     /**
