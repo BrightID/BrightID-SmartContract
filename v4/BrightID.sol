@@ -22,7 +22,7 @@ contract BrightID is Ownable, IBrightID {
     mapping(address => address) override public history;
 
     /**
-     * @param _verificationHash sha256 of the acceptable verification expression
+     * @param _verificationHash sha256 of the verification expression
      * @param _verifierToken verifier token
      * @param _context BrightID context used for verifying users
      */
@@ -33,7 +33,7 @@ contract BrightID is Ownable, IBrightID {
     }
 
     /**
-     * @notice Set verification hash
+     * @notice Set the context
      * @param _context BrightID context used for verifying users
      */
     function setContext(bytes32 _context) public onlyOwner {
@@ -43,7 +43,7 @@ contract BrightID is Ownable, IBrightID {
 
     /**
      * @notice Set verification hash
-     * @param _verificationHash sha256 of the acceptable verification expression
+     * @param _verificationHash sha256 of the verification expression
      */
     function setVerificationHash(bytes32 _verificationHash) public onlyOwner {
         verificationHash = _verificationHash;
@@ -91,10 +91,10 @@ contract BrightID is Ownable, IBrightID {
     }
 
     /**
-     * @notice Check a user is verified or not
-     * @param user BrightID context id used for verifying users
+     * @notice Check an address is verified or not
+     * @param addr The context id used for verifying users
      */
-    function isVerified(address user) override external view returns (bool) {
+    function isVerified(address addr) override external view returns (bool) {
         return verifications[user].isVerified;
     }
 }
