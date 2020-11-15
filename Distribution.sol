@@ -2,7 +2,7 @@ pragma solidity ^0.6.3;
 
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/access/Ownable.sol";
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/math/SafeMath.sol";
-import "https://github.com/BrightID/BrightID-SmartContract/blob/master/v4/IBrightID.sol";
+import "https://github.com/BrightID/BrightID-SmartContract/blob/master/IBrightID.sol";
 
 contract Distribution is Ownable {
     using SafeMath for uint256;
@@ -22,7 +22,7 @@ contract Distribution is Ownable {
     }
 
     function claim(address payable beneficiary, uint256 amount) public {
-        require(brightid.verifications(beneficiary) > 0, "beneficiary is not verified");
+        require(brightid.isVerified(beneficiary) > 0, "beneficiary is not verified");
         address tmp = beneficiary;
         uint256 sum = 0;
         while (tmp != address(0)) {
