@@ -2,17 +2,15 @@ pragma solidity ^0.6.3;
 
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/access/Ownable.sol";
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/IERC20.sol";
-import "https://github.com/BrightID/BrightID-SmartContract/blob/master/v4/IBrightID.sol";
+import "https://github.com/BrightID/BrightID-SmartContract/blob/master/IBrightID.sol";
 
 contract BrightID is Ownable, IBrightID {
     IERC20 public verifierToken;
-    bytes32 public verificationHash;
-    bytes32 public context;
+    bytes32 public app;
 
     event Verified(address indexed addr);
     event VerifierTokenSet(IERC20 verifierToken);
-    event VerificationHashSet(bytes32 verificationHash);
-    event ContextSet(bytes32 _context);
+    event AppSet(bytes32 _app);
 
     struct Verification {
         uint256 time;
@@ -22,32 +20,21 @@ contract BrightID is Ownable, IBrightID {
     mapping(address => address) override public history;
 
     /**
-     * @param _verificationHash sha256 of the verification expression
      * @param _verifierToken verifier token
-     * @param _context BrightID context used for verifying users
+     * @param _app BrightID app used for verifying users
      */
-    constructor(bytes32 _verificationHash, IERC20 _verifierToken, bytes32 _context) public {
-        verificationHash = _verificationHash;
+    constructor(IERC20 _verifierToken, bytes32 _app) public {
         verifierToken = _verifierToken;
-        context = _context;
+        app = _app;
     }
 
     /**
-     * @notice Set the context
-     * @param _context BrightID context used for verifying users
+     * @notice Set the app
+     * @param _app BrightID app used for verifying users
      */
-    function setContext(bytes32 _context) public onlyOwner {
-        context = _context;
-        emit ContextSet(_context);
-    }
-
-    /**
-     * @notice Set verification hash
-     * @param _verificationHash sha256 of the verification expression
-     */
-    function setVerificationHash(bytes32 _verificationHash) public onlyOwner {
-        verificationHash = _verificationHash;
-        emit VerificationHashSet(_verificationHash);
+    function setApp(bytes32 _app) public onlyOwner {
+        app = _app;
+        emit AppSet(_app);
     }
 
     /**
@@ -61,7 +48,7 @@ contract BrightID is Ownable, IBrightID {
 
     /**
      * @notice Register a user by BrightID verification
-     * @param addrs The history of addresses used by this user in the context
+     * @param addrs The history of addresses used by this user in the app
      * @param timestamp The BrightID node's verification timestamp
      * @param v Component of signature
      * @param r Component of signature
@@ -76,7 +63,7 @@ contract BrightID is Ownable, IBrightID {
     ) public {
         require(verifications[addrs[0]].time < timestamp, "newer verification registered before");
 
-        bytes32 message = keccak256(abi.encodePacked(context, addrs, verificationHash, timestamp));
+        bytes32 message = keccak256(abi.encodePacked(app, addrs, timestamp));
         address signer = ecrecover(message, v, r, s);
         require(verifierToken.balanceOf(signer) > 0, "not authorized");
 
@@ -95,6 +82,6 @@ contract BrightID is Ownable, IBrightID {
      * @param addr The context id used for verifying users
      */
     function isVerified(address addr) override external view returns (bool) {
-        return verifications[user].isVerified;
+        return verifications[addr].isVerified;
     }
 }
