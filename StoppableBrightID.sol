@@ -2,13 +2,12 @@ pragma solidity ^0.6.3;
 
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/access/Ownable.sol";
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/IERC20.sol";
-import "https://github.com/BrightID/BrightID-SmartContract/blob/master/v4/IBrightID.sol";
+import "https://github.com/BrightID/BrightID-SmartContract/blob/master/IBrightID.sol";
 
 contract StoppableBrightID is Ownable, IBrightID {
     IERC20 public supervisorToken;
     IERC20 public proposerToken;
-    bytes32 public verificationHash;
-    bytes32 public context;
+    bytes32 public app;
 
     event Verified(address indexed addr);
     event Proposed(address indexed addr);
@@ -16,8 +15,7 @@ contract StoppableBrightID is Ownable, IBrightID {
     event Stopped(address stopper);
     event TimingSet(uint waiting, uint timeout);
     event MembershipTokensSet(IERC20 supervisorToken, IERC20 proposerToken);
-    event VerificationHashSet(bytes32 verificationHash);
-    event ContextSet(bytes32 _context);
+    event AppSet(bytes32 _app);
 
     bool public stopped = false;
     uint public waiting;
@@ -34,43 +32,31 @@ contract StoppableBrightID is Ownable, IBrightID {
     /**
      * @param _supervisorToken supervisor ERC20 token
      * @param _proposerToken proposer ERC20 token
-     * @param _verificationHash sha256 of the verification expression
-     * @param _context BrightID context used for verifying users
+     * @param _app BrightID app used for verifying users
      * @param _waiting The waiting amount in block number
      * @param _timeout The timeout amount in block number
      */
     constructor(
         IERC20 _supervisorToken,
         IERC20 _proposerToken,
-        bytes32 _verificationHash,
-        bytes32 _context,
+        bytes32 _app,
         uint _waiting,
         uint _timeout
     ) public {
         supervisorToken = _supervisorToken;
         proposerToken = _proposerToken;
-        verificationHash = _verificationHash;
-        context = _context;
+        app = _app;
         waiting = _waiting;
         timeout = _timeout;
     }
 
     /**
-     * @notice Set the context
-     * @param _context BrightID context used for verifying users
+     * @notice Set the app
+     * @param _app BrightID app used for verifying users
      */
-    function setContext(bytes32 _context) public onlyOwner {
-        context = _context;
-        emit ContextSet(_context);
-    }
-
-    /**
-     * @notice Set verification hash
-     * @param _verificationHash sha256 of the verification expression
-     */
-    function setVerificationHash(bytes32 _verificationHash) public onlyOwner {
-        verificationHash = _verificationHash;
-        emit VerificationHashSet(_verificationHash);
+    function setApp(bytes32 _app) public onlyOwner {
+        app = _app;
+        emit AppSet(_app);
     }
 
     /**
@@ -114,7 +100,7 @@ contract StoppableBrightID is Ownable, IBrightID {
 
     /**
      * @notice Propose a registration
-     * @param addrs The history of addresses used by this user in the context
+     * @param addrs The history of addresses used by this user in the app
      * @param timestamp The BrightID node's verification timestamp
      * @param v Component of signature
      * @param r Component of signature
@@ -129,7 +115,7 @@ contract StoppableBrightID is Ownable, IBrightID {
     ) public {
         require(!stopped, "contract is stopped");
 
-        bytes32 message = keccak256(abi.encodePacked(context, addrs, verificationHash, timestamp));
+        bytes32 message = keccak256(abi.encodePacked(app, addrs, timestamp));
         address signer = ecrecover(message, v, r, s);
         require(proposerToken.balanceOf(signer) > 0, "not authorized");
 
@@ -139,7 +125,7 @@ contract StoppableBrightID is Ownable, IBrightID {
 
     /**
      * @notice Verify a registration
-     * @param addrs The history of addresses used by this user in the context
+     * @param addrs The history of addresses used by this user in the app
      * @param timestamp The BrightID node's verification timestamp
      */
     function verify(
@@ -149,7 +135,7 @@ contract StoppableBrightID is Ownable, IBrightID {
         require(!stopped, "contract is stopped");
         require(verifications[addrs[0]].time < timestamp, "newer verification registered before");
 
-        bytes32 message = keccak256(abi.encodePacked(context, addrs, verificationHash, timestamp));
+        bytes32 message = keccak256(abi.encodePacked(app, addrs, timestamp));
         uint pblock = proposals[message];
         require(pblock > 0, "not proposed");
         require(block.number - pblock > waiting, "proposal is waiting");
@@ -170,6 +156,6 @@ contract StoppableBrightID is Ownable, IBrightID {
      * @param addr The context id used for verifying users
      */
     function isVerified(address addr) override external view returns (bool) {
-        return verifications[user].isVerified;
+        return verifications[addr].isVerified;
     }
 }
