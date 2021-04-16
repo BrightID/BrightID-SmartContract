@@ -11,7 +11,7 @@ contract BrightID is Ownable {
     
     //-------------------Storage-----------------------------    
     IERC20 public verifierToken; // address of verification Token  
-    bytes32 public app; //Regiested BrightID app name 
+    bytes32 public app; //Registered BrightID app name 
     uint32 constant public REGISTRATION_PERIOD = 86400;
     
     struct Verification {
@@ -34,7 +34,7 @@ contract BrightID is Ownable {
     
  
     
-    //-------------------Contructor-------------------------
+    //-------------------Constructor-------------------------
     /**
      * @param _verifierToken verifier token
      * @param _app BrightID app used for verifying users
@@ -46,7 +46,7 @@ contract BrightID is Ownable {
     }
     
 
-    // emits a sponsor event for brightID nodes // TODO Qeustion, is this correct? 
+    // emits a sponsor event for brightID nodes 
     function sponsor(address addr) public {
         emit Sponsor(addr);
     }
@@ -84,7 +84,7 @@ contract BrightID is Ownable {
         bytes32 r,
         bytes32 s
     ) public {
-        require(verifications[addrs[0]].time < timestamp, "newer verification registered before");
+        require(verifications[addrs[0]].time < timestamp, "Newer verification registered before.");
         require (timestamp > block.timestamp - REGISTRATION_PERIOD, "Verification too old. Try linking again.");
         
         bytes32 message = keccak256(abi.encodePacked(app, addrs, timestamp));
