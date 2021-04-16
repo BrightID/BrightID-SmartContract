@@ -39,3 +39,7 @@ A template contract that show how dapps can use `isVerified` and `history` to di
 
 An interface that should be implemented by dapps that want to sponsor their users on-chain. Such apps should emit the `Sponsor` event in their contracts when
 the user had enough interaction to be sponsored in their dapp.
+
+## BrightIDFaucetVerifier.sol
+
+An example--used by [Rare Coin Claims](https://rare.fyi)--to distribute tokens at regular intervals. Claimants are allowed to change their address but only once per registration period.
