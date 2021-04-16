@@ -42,4 +42,4 @@ the user had enough interaction to be sponsored in their dapp.
 
 ## BrightIDFaucetVerifier.sol
 
-An example--used by [Rare Coin Claims](https://rare.fyi)--to distribute tokens at regular intervals. Claimants are allowed to change their address only once per registration period.
+An example--used by [Rare Coin Claims](https://rare.fyi)--to distribute tokens at regular intervals to unique humans. Claimants are allowed to change their address only once per registration period.
