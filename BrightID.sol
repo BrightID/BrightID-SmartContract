@@ -74,6 +74,7 @@ contract BrightID is Ownable, IBrightID {
             verifications[addrs[i]].isVerified = false;
             history[addrs[i - 1]] = addrs[i];
         }
+        history[addrs[i-1]] = address(0);
         emit Verified(addrs[0]);
     }
 
