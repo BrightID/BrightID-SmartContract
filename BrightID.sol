@@ -8,7 +8,6 @@ contract BrightID is Ownable, IBrightID {
     IERC20 public verifierToken;
     bytes32 public app;
     bytes32 public verificationHash;
-    bool public useVerificationHash;
 
     event VerifierTokenSet(IERC20 verifierToken);
     event AppSet(bytes32 _app);
@@ -23,10 +22,12 @@ contract BrightID is Ownable, IBrightID {
     /**
      * @param _verifierToken verifier token
      * @param _app BrightID app used for verifying users
+     * @param _verificationHash sha256 of the verification expression
      */
-    constructor(IERC20 _verifierToken, bytes32 _app) public {
+    constructor(IERC20 _verifierToken, bytes32 _app, bytes32 _verificationHash) public {
         verifierToken = _verifierToken;
         app = _app;
+        verificationHash = _verificationHash;
     }
 
     /**
@@ -43,7 +44,6 @@ contract BrightID is Ownable, IBrightID {
      * @param _verificationHash sha256 of the verification expression
      */
     function setVerificationHash(bytes32 _verificationHash) public onlyOwner {
-        useVerificationHash = true;
         verificationHash = _verificationHash;
         emit VerificationHashSet(_verificationHash);
     }
@@ -72,12 +72,7 @@ contract BrightID is Ownable, IBrightID {
         bytes32 r,
         bytes32 s
     ) public {
-        bytes32 message;
-        if (useVerificationHash) {
-            message = keccak256(abi.encodePacked(app, addr, verificationHash, timestamp));
-        } else {
-            message = keccak256(abi.encodePacked(app, addr, timestamp));
-        }
+        bytes32 message = keccak256(abi.encodePacked(app, addr, verificationHash, timestamp));
         address signer = ecrecover(message, v, r, s);
         require(verifierToken.balanceOf(signer) > 0, "not authorized");
 

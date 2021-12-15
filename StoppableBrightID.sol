@@ -9,7 +9,6 @@ contract StoppableBrightID is Ownable, IBrightID {
     IERC20 public proposerToken;
     bytes32 public app;
     bytes32 public verificationHash;
-    bool public useVerificationHash;
 
     event Verified(address indexed addr);
     event Proposed(address indexed addr);
@@ -37,19 +36,22 @@ contract StoppableBrightID is Ownable, IBrightID {
      * @param _app BrightID app used for verifying users
      * @param _waiting The waiting amount in block number
      * @param _timeout The timeout amount in block number
+     * @param _verificationHash sha256 of the verification expression
      */
     constructor(
         IERC20 _supervisorToken,
         IERC20 _proposerToken,
         bytes32 _app,
         uint _waiting,
-        uint _timeout
+        uint _timeout,
+        bytes32 _verificationHash
     ) public {
         supervisorToken = _supervisorToken;
         proposerToken = _proposerToken;
         app = _app;
         waiting = _waiting;
         timeout = _timeout;
+        verificationHash = _verificationHash;
     }
 
     /**
@@ -66,7 +68,6 @@ contract StoppableBrightID is Ownable, IBrightID {
      * @param _verificationHash sha256 of the verification expression
      */
     function setVerificationHash(bytes32 _verificationHash) public onlyOwner {
-        useVerificationHash = true;
         verificationHash = _verificationHash;
         emit VerificationHashSet(_verificationHash);
     }
@@ -127,12 +128,7 @@ contract StoppableBrightID is Ownable, IBrightID {
     ) public {
         require(!stopped, "contract is stopped");
 
-        bytes32 message;
-        if (useVerificationHash) {
-            message = keccak256(abi.encodePacked(app, addr, verificationHash, timestamp));
-        } else {
-            message = keccak256(abi.encodePacked(app, addr, timestamp));
-        }
+        bytes32 message = keccak256(abi.encodePacked(app, addr, verificationHash, timestamp));
         address signer = ecrecover(message, v, r, s);
         require(proposerToken.balanceOf(signer) > 0, "not authorized");
 
@@ -151,13 +147,7 @@ contract StoppableBrightID is Ownable, IBrightID {
     ) public {
         require(!stopped, "contract is stopped");
 
-
-        bytes32 message;
-        if (useVerificationHash) {
-            message = keccak256(abi.encodePacked(app, addr, verificationHash, timestamp));
-        } else {
-            message = keccak256(abi.encodePacked(app, addr, timestamp));
-        }
+        bytes32 message = keccak256(abi.encodePacked(app, addr, verificationHash, timestamp));
         uint pblock = proposals[message];
         require(pblock > 0, "not proposed");
         require(block.number - pblock > waiting, "proposal is waiting");
