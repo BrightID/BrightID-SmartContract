@@ -2,7 +2,7 @@ pragma solidity ^0.6.3;
 
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v3.0.0/contracts/access/Ownable.sol";
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v3.0.0/contracts/token/ERC20/ERC20.sol";
-import "https://github.com/BrightID/BrightID-SmartContract/blob/master/IBrightID.sol";
+import "https://github.com/BrightID/BrightID-SmartContract/blob/dev/IBrightID.sol";
 
 contract BrightID is Ownable, IBrightID {
     IERC20 public verifierToken;
@@ -19,7 +19,6 @@ contract BrightID is Ownable, IBrightID {
         bool isVerified;
     }
     mapping(address => Verification) public verifications;
-    mapping(address => address) override public history;
 
     /**
      * @param _verifierToken verifier token
@@ -60,7 +59,7 @@ contract BrightID is Ownable, IBrightID {
 
     /**
      * @notice Register a user by BrightID verification
-     * @param addr address used by this user in the app
+     * @param addr The address used by this user in the app
      * @param timestamp The BrightID node's verification timestamp
      * @param v Component of signature
      * @param r Component of signature

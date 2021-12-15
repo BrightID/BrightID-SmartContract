@@ -1,13 +1,15 @@
 pragma solidity ^0.6.3;
 
-import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/access/Ownable.sol";
-import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/IERC20.sol";
-import "https://github.com/BrightID/BrightID-SmartContract/blob/master/IBrightID.sol";
+import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v3.0.0/contracts/access/Ownable.sol";
+import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v3.0.0/contracts/token/ERC20/ERC20.sol";
+import "https://github.com/BrightID/BrightID-SmartContract/blob/dev/IBrightID.sol";
 
 contract StoppableBrightID is Ownable, IBrightID {
     IERC20 public supervisorToken;
     IERC20 public proposerToken;
     bytes32 public app;
+    bytes32 public verificationHash;
+    bool public useVerificationHash;
 
     event Verified(address indexed addr);
     event Proposed(address indexed addr);
@@ -16,6 +18,7 @@ contract StoppableBrightID is Ownable, IBrightID {
     event TimingSet(uint waiting, uint timeout);
     event MembershipTokensSet(IERC20 supervisorToken, IERC20 proposerToken);
     event AppSet(bytes32 _app);
+    event VerificationHashSet(bytes32 verificationHash);
 
     bool public stopped = false;
     uint public waiting;
@@ -27,7 +30,6 @@ contract StoppableBrightID is Ownable, IBrightID {
     }
     mapping(address => Verification) public verifications;
     mapping(bytes32 => uint) public proposals;
-    mapping(address => address) override public history;
 
     /**
      * @param _supervisorToken supervisor ERC20 token
@@ -57,6 +59,16 @@ contract StoppableBrightID is Ownable, IBrightID {
     function setApp(bytes32 _app) public onlyOwner {
         app = _app;
         emit AppSet(_app);
+    }
+
+    /**
+     * @notice Set verification hash
+     * @param _verificationHash sha256 of the verification expression
+     */
+    function setVerificationHash(bytes32 _verificationHash) public onlyOwner {
+        useVerificationHash = true;
+        verificationHash = _verificationHash;
+        emit VerificationHashSet(_verificationHash);
     }
 
     /**
@@ -100,14 +112,14 @@ contract StoppableBrightID is Ownable, IBrightID {
 
     /**
      * @notice Propose a registration
-     * @param addrs The history of addresses used by this user in the app
+     * @param addr The address used by this user in the app
      * @param timestamp The BrightID node's verification timestamp
      * @param v Component of signature
      * @param r Component of signature
      * @param s Component of signature
      */
     function propose(
-        address[] memory addrs,
+        address addr,
         uint timestamp,
         uint8 v,
         bytes32 r,
@@ -115,41 +127,45 @@ contract StoppableBrightID is Ownable, IBrightID {
     ) public {
         require(!stopped, "contract is stopped");
 
-        bytes32 message = keccak256(abi.encodePacked(app, addrs, timestamp));
+        bytes32 message;
+        if (useVerificationHash) {
+            message = keccak256(abi.encodePacked(app, addr, verificationHash, timestamp));
+        } else {
+            message = keccak256(abi.encodePacked(app, addr, timestamp));
+        }
         address signer = ecrecover(message, v, r, s);
         require(proposerToken.balanceOf(signer) > 0, "not authorized");
 
         proposals[message] = block.number;
-        emit Proposed(addrs[0]);
+        emit Proposed(addr);
     }
 
     /**
      * @notice Verify a registration
-     * @param addrs The history of addresses used by this user in the app
+     * @param addr The address used by this user in the app
      * @param timestamp The BrightID node's verification timestamp
      */
     function verify(
-        address[] memory addrs,
+        address addr,
         uint timestamp
     ) public {
         require(!stopped, "contract is stopped");
-        require(verifications[addrs[0]].time < timestamp, "newer verification registered before");
 
-        bytes32 message = keccak256(abi.encodePacked(app, addrs, timestamp));
+
+        bytes32 message;
+        if (useVerificationHash) {
+            message = keccak256(abi.encodePacked(app, addr, verificationHash, timestamp));
+        } else {
+            message = keccak256(abi.encodePacked(app, addr, timestamp));
+        }
         uint pblock = proposals[message];
         require(pblock > 0, "not proposed");
         require(block.number - pblock > waiting, "proposal is waiting");
         require(block.number - pblock < timeout, "proposal timed out");
 
-        verifications[addrs[0]].time = timestamp;
-        verifications[addrs[0]].isVerified = true;
-        for(uint i = 1; i < addrs.length; i++) {
-            verifications[addrs[i]].time = timestamp;
-            verifications[addrs[i]].isVerified = false;
-            history[addrs[i - 1]] = addrs[i];
-        }
-        history[addrs[i-1]] = address(0);
-        emit Verified(addrs[0]);
+        verifications[addr].time = timestamp;
+        verifications[addr].isVerified = true;
+        emit Verified(addr);
     }
 
     /**
