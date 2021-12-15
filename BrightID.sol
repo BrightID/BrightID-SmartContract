@@ -1,16 +1,18 @@
 pragma solidity ^0.6.3;
 
-import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/access/Ownable.sol";
-import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/IERC20.sol";
+import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v3.0.0/contracts/access/Ownable.sol";
+import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v3.0.0/contracts/token/ERC20/ERC20.sol";
 import "https://github.com/BrightID/BrightID-SmartContract/blob/master/IBrightID.sol";
 
 contract BrightID is Ownable, IBrightID {
     IERC20 public verifierToken;
     bytes32 public app;
+    bytes32 public verificationHash;
+    bool public useVerificationHash;
 
-    event Verified(address indexed addr);
     event VerifierTokenSet(IERC20 verifierToken);
     event AppSet(bytes32 _app);
+    event VerificationHashSet(bytes32 verificationHash);
 
     struct Verification {
         uint256 time;
@@ -38,6 +40,16 @@ contract BrightID is Ownable, IBrightID {
     }
 
     /**
+     * @notice Set verification hash
+     * @param _verificationHash sha256 of the verification expression
+     */
+    function setVerificationHash(bytes32 _verificationHash) public onlyOwner {
+        useVerificationHash = true;
+        verificationHash = _verificationHash;
+        emit VerificationHashSet(_verificationHash);
+    }
+
+    /**
      * @notice Set verifier token
      * @param _verifierToken verifier token
      */
@@ -48,34 +60,31 @@ contract BrightID is Ownable, IBrightID {
 
     /**
      * @notice Register a user by BrightID verification
-     * @param addrs The history of addresses used by this user in the app
+     * @param addr address used by this user in the app
      * @param timestamp The BrightID node's verification timestamp
      * @param v Component of signature
      * @param r Component of signature
      * @param s Component of signature
      */
     function verify(
-        address[] memory addrs,
+        address addr,
         uint timestamp,
         uint8 v,
         bytes32 r,
         bytes32 s
     ) public {
-        require(verifications[addrs[0]].time < timestamp, "newer verification registered before");
-
-        bytes32 message = keccak256(abi.encodePacked(app, addrs, timestamp));
+        bytes32 message;
+        if (useVerificationHash) {
+            message = keccak256(abi.encodePacked(app, addr, verificationHash, timestamp));
+        } else {
+            message = keccak256(abi.encodePacked(app, addr, timestamp));
+        }
         address signer = ecrecover(message, v, r, s);
         require(verifierToken.balanceOf(signer) > 0, "not authorized");
 
-        verifications[addrs[0]].time = timestamp;
-        verifications[addrs[0]].isVerified = true;
-        for(uint i = 1; i < addrs.length; i++) {
-            verifications[addrs[i]].time = timestamp;
-            verifications[addrs[i]].isVerified = false;
-            history[addrs[i - 1]] = addrs[i];
-        }
-        history[addrs[i-1]] = address(0);
-        emit Verified(addrs[0]);
+        verifications[addr].time = timestamp;
+        verifications[addr].isVerified = true;
+        emit Verified(addr);
     }
 
     /**
