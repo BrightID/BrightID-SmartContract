@@ -1,8 +1,8 @@
 pragma solidity ^0.6.3;
 
-import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/access/Ownable.sol";
-import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/IERC20.sol";
-import "https://github.com/BrightID/BrightID-SmartContract/blob/master/IBrightID.sol";
+import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v3.0.0/contracts/access/Ownable.sol";
+import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v3.0.0/contracts/token/ERC20/ERC20.sol";
+import "./IBrightID.sol";
 
 contract StoppableBrightID is Ownable, IBrightID {
     IERC20 public supervisorToken;
