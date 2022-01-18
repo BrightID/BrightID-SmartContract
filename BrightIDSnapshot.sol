@@ -23,7 +23,6 @@ contract BrightIDSnapshot is Ownable, IBrightIDSnapshot {
     
     
     //-------------------Events-----------------------------
-    event Verified(address indexed addr);
     event VerifierTokenSet(IERC20 verifierToken);
     event AppSet(bytes32 _app);
     event Sponsor(address indexed addr);
@@ -31,7 +30,7 @@ contract BrightIDSnapshot is Ownable, IBrightIDSnapshot {
     
     //-------------------Mappings---------------------------
     mapping(address => Verification) public verifications;
-    mapping(address => address) public history;
+    mapping(address => address) override public history;
     
  
     
@@ -106,15 +105,7 @@ contract BrightIDSnapshot is Ownable, IBrightIDSnapshot {
      * @notice Check an address is verified or not
      * @param _user The context id used for verifying users
      */
-    function isVerifiedUser(address _user) external view returns (bool) {
+    function isVerifiedUser(address _user) override external view returns (bool) {
         return verifications[_user].isVerified;
-    }
-
-    /**
-     * @notice Return the last address used by a user
-     * @param addr The user's newest address
-     */
-    function history(address addr) external view returns (address) {
-        return history[addr];
     }
 }
