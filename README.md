@@ -43,3 +43,15 @@ the user had enough interaction to be sponsored in their dapp.
 ## BrightIDFaucetVerifier.sol
 
 An example--used by [Rare Coin Claims](https://rare.fyi)--to distribute tokens at regular intervals to unique humans. Claimants are allowed to change their address only once per registration period.
+
+## BrightIDSnapshot.sol
+
+The official registry contract used by [Snapshot's BrightID Strategy](https://snapshot.org/#/strategy/brightid). Users are allowed to change their address only once per day.
+
+## IBrightIDSnapshot.sol
+
+An interface modified from [IBrightID.sol](IBrightID.sol) specifically for snapshot to keep backward compatibility on private registries.
+
+## VerifierToken.sol
+
+An ERC-20 token modified from [ERC20PresetMinterPauser.sol](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol). Allowing an admin with the burner role to force burning tokens from other accounts, disqualifies compromised nodes in the process, without the need to redistribute a new token.

@@ -2,8 +2,8 @@
 pragma solidity ^0.8.0;
 
 
-import "./Ownable.sol";
-import "./IERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./IBrightIDSnapshot.sol";
 
 
@@ -11,9 +11,9 @@ import "./IBrightIDSnapshot.sol";
 contract BrightIDSnapshot is Ownable, IBrightIDSnapshot {
     
     //-------------------Storage-----------------------------    
-    IERC20 public verifierToken; // address of verification Token  
+    IERC20 public verifierToken; // Address of verification Token  
     bytes32 public app; // Registered BrightID app name 
-    uint32 constant public REGISTRATION_PERIOD = 2592000; // One month
+    uint32 constant public REGISTRATION_PERIOD = 86400; // A day
     
     struct Verification {
         uint256 time;
@@ -21,17 +21,15 @@ contract BrightIDSnapshot is Ownable, IBrightIDSnapshot {
     }
 
     
-    
+
     //-------------------Events-----------------------------
-    event Verified(address indexed addr);
     event VerifierTokenSet(IERC20 verifierToken);
-    event AppSet(bytes32 _app);
     event Sponsor(address indexed addr);
 
     
     //-------------------Mappings---------------------------
     mapping(address => Verification) public verifications;
-    mapping(address => address) public history;
+    mapping(address => address) override public history;
     
  
     
@@ -49,15 +47,6 @@ contract BrightIDSnapshot is Ownable, IBrightIDSnapshot {
     // emits a sponsor event for brightID nodes 
     function sponsor(address addr) public {
         emit Sponsor(addr);
-    }
-
-    /**
-     * @notice Set the app
-     * @param _app BrightID app used for verifying users
-     */
-    function setApp(bytes32 _app) public onlyOwner {
-        app = _app;
-        emit AppSet(_app);
     }
 
     /**
@@ -106,15 +95,7 @@ contract BrightIDSnapshot is Ownable, IBrightIDSnapshot {
      * @notice Check an address is verified or not
      * @param _user The context id used for verifying users
      */
-    function isVerifiedUser(address _user) external view returns (bool) {
+    function isVerifiedUser(address _user) override external view returns (bool) {
         return verifications[_user].isVerified;
-    }
-
-    /**
-     * @notice Return the last address used by a user
-     * @param addr The user's newest address
-     */
-    function history(address addr) external view returns (address) {
-        return history[addr];
     }
 }
